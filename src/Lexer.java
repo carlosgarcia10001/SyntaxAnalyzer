@@ -26,8 +26,8 @@ public class Lexer {
         IN_STRING(4),
         IN_COMMENT(5),
         SPACE(6),
-        IN_COMPARATOR(7),
-        COMPARATOR(8),
+        IN_OPERATOR(7),
+        OPERATOR(8),
         SEPARATOR(9),
         END_STATEMENT(10),
         DOT_TRANSITION(11),
@@ -44,15 +44,15 @@ public class Lexer {
     }
 
     Lexer.State[][] stateTransitionTable = {
-            { State.START,          State.IDENTIFIER,  State.NUMBER,     State.REAL,         State.IN_STRING,  State.IN_COMMENT, State.SPACE,       State.IN_COMPARATOR, State.COMPARATOR, State.SEPARATOR, State.END_STATEMENT, State.DOT_TRANSITION},
+            { State.START,          State.IDENTIFIER,  State.NUMBER,     State.REAL,         State.IN_STRING,  State.IN_COMMENT, State.SPACE,       State.IN_OPERATOR, State.OPERATOR, State.SEPARATOR, State.END_STATEMENT, State.DOT_TRANSITION},
             { State.IDENTIFIER,     State.IDENTIFIER,  State.IDENTIFIER, State.START,        State.START,      State.START,      State.START,       State.START,         State.START,      State.START,     State.START,         State.START},
             { State.NUMBER,         State.START,       State.NUMBER,     State.REAL,         State.START,      State.START,      State.START,       State.START,         State.START,      State.START,     State.START,         State.REAL},
             { State.REAL,           State.START,       State.REAL,       State.REAL,         State.START,      State.START,      State.START,       State.START,         State.START,      State.START,     State.START,         State.DOT_TRANSITION},
             { State.IN_STRING,      State.START,       State.START,      State.START,        State.IN_STRING,  State.START,      State.START,       State.START,         State.START,      State.START,     State.START,         State.START},
             { State.IN_COMMENT,     State.IN_COMMENT,  State.IN_COMMENT, State.IN_COMMENT,   State.IN_COMMENT, State.IN_COMMENT, State.START,       State.IN_COMMENT,    State.IN_COMMENT, State.IN_COMMENT,State.IN_COMMENT,    State.IN_COMMENT},
             { State.SPACE, 	        State.START,       State.START,      State.START,        State.START,      State.START,      State.SPACE,       State.START,         State.START,      State.START,     State.START,         State.START},
-            { State.IN_COMPARATOR,  State.START,       State.START,      State.START,        State.START,      State.START,      State.START,       State.START,         State.COMPARATOR, State.SEPARATOR, State.END_STATEMENT, State.DOT_TRANSITION},
-            { State.COMPARATOR,     State.START,       State.START,      State.START,        State.START,      State.START,      State.START,       State.START,         State.START,      State.START,     State.START,         State.START},
+            { State.IN_OPERATOR,  State.START,       State.START,      State.START,        State.START,      State.START,      State.START,       State.START,         State.OPERATOR, State.SEPARATOR, State.END_STATEMENT, State.DOT_TRANSITION},
+            { State.OPERATOR,     State.START,       State.START,      State.START,        State.START,      State.START,      State.START,       State.START,         State.START,      State.START,     State.START,         State.START},
             { State.SEPARATOR,      State.START,       State.START,      State.START,        State.START,      State.START,      State.START,       State.START,         State.START,      State.START,     State.START,         State.START},
             { State.END_STATEMENT,  State.START,       State.START,      State.START,        State.START,      State.START,      State.START,       State.START,         State.START,      State.START,     State.START,         State.START},
             { State.DOT_TRANSITION, State.START,       State.REAL,       State.START,        State.START,      State.START,      State.START,       State.START,         State.START,      State.START,     State.START,         State.START},
@@ -76,11 +76,11 @@ public class Lexer {
                 return State.SEPARATOR;
             case ' ':
                 return State.SPACE;
-            case '>': case '<': case '=':
-                if(this.currState != State.IN_COMPARATOR){
-                    return State.IN_COMPARATOR;
+            case '>': case '<': case '=': case '+': case '-': case '*': case '/': case '%':
+                if(this.currState != State.IN_OPERATOR){
+                    return State.IN_OPERATOR;
                 } else {
-                    return State.COMPARATOR;
+                    return State.OPERATOR;
                 }
             case '!':
                 if(this.currState != State.IN_COMMENT){
@@ -225,8 +225,8 @@ public class Lexer {
             if(token.lexemeName.startsWith("!")){
                 token.tokenName = State.IN_COMMENT;
             }
-            if(token.tokenName == State.IN_COMPARATOR){
-                token.tokenName = State.COMPARATOR;
+            if(token.tokenName == State.IN_OPERATOR){
+                token.tokenName = State.OPERATOR;
             }
             if(token.lexemeName==""){
                 removeList.add(token);

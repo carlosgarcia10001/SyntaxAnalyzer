@@ -1,11 +1,11 @@
-! Find largest value between two numbers !
-int num1, num2, large$
-if(num1 >= num2)
-{
-	large = num1$;
-	large = 4;
-}
-else
-{
-	large = num2$;
-}
+! this is comment for this sample test code the %% is optional to start!
+
+
+
+
+%%
+
+x=a + b;
+z=c+ d;
+a=e-f;
+b=g*n;
