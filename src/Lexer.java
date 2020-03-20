@@ -63,13 +63,13 @@ public class Lexer {
     private boolean isInComment = false;
 
     public Lexer() {
-        for(String word:keyWordList){
+        for(String word:keyWordList) {
             keyWordMap.put(word, State.KEYWORD);
         }
     }
 
     private State getColumn(char input) {
-        switch(input){
+        switch(input) {
             case '0': case '1':case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
                 return State.NUMBER;
             case '(': case ')': case '{': case '}': case ',':
@@ -77,25 +77,25 @@ public class Lexer {
             case ' ':
                 return State.SPACE;
             case '>': case '<': case '=': case '+': case '-': case '*': case '/': case '%':
-                if(this.currState != State.IN_OPERATOR){
+                if(this.currState != State.IN_OPERATOR) {
                     return State.IN_OPERATOR;
                 } else {
                     return State.OPERATOR;
                 }
             case '!':
-                if(this.currState != State.IN_COMMENT){
+                if(this.currState != State.IN_COMMENT) {
                     return State.IN_COMMENT;
                 } else {
                     return State.START;
                 }
             case '.':
-                if(this.currState == State.NUMBER){
+                if(this.currState == State.NUMBER) {
                     return State.REAL;
                 } else {
                     return State.DOT_TRANSITION;
                 }
             case '"':
-                if(this.currState != State.IN_STRING){
+                if(this.currState != State.IN_STRING) {
                     return State.IN_STRING;
                 } else {
                     return State.START;
@@ -103,7 +103,7 @@ public class Lexer {
             case ';':
                 return State.END_STATEMENT;
             default:
-                if(this.currState == State.IN_COMMENT){
+                if(this.currState == State.IN_COMMENT) {
                     return State.IN_COMMENT;
                 } else {
                     return State.IDENTIFIER;
@@ -116,7 +116,7 @@ public class Lexer {
         return stateTransitionTable[current.getId()][input.getId()];
     }
 
-    public List<Token> createTokenList(String fileName){
+    public List<Token> createTokenList(String fileName) {
         File file = new File(fileName);
         Scanner input = null;
         List<Token>tokenList = new ArrayList<>();
@@ -129,9 +129,9 @@ public class Lexer {
             String nextLineRead = input.nextLine();
             String currToken = "";
             Token token = new Token();
-            for(int i = 0; i < nextLineRead.length();){
+            for(int i = 0; i < nextLineRead.length();) {
                 char currChar = nextLineRead.charAt(i);
-                if(currChar == '!' && this.isInComment){
+                if(currChar == '!' && this.isInComment) {
                     this.isInComment = false;
                     this.prevState = State.IN_COMMENT;
                     this.currState = State.START;
@@ -140,12 +140,12 @@ public class Lexer {
                     this.prevState = this.currState;
                     this.currState = State.IN_COMMENT;
                 }
-                if(!this.isInComment && currChar != '!'){
+                if(!this.isInComment && currChar != '!') {
                     this.currState = parseState(this.currState, getColumn(currChar));
                 }
-                if(this.currState == State.START || i == nextLineRead.length()-1){
+                if(this.currState == State.START || i == nextLineRead.length()-1) {
                     if(this.currState != State.IN_COMMENT) {
-                        if(this.prevState != State.SPACE){
+                        if(this.prevState != State.SPACE) {
                             if(i == nextLineRead.length()-1) {
                                 State read = parseState(this.currState, getColumn(currChar));
                                 if(read == this.prevState) {
@@ -177,7 +177,7 @@ public class Lexer {
                         ++i;
                     }
                     currToken = "";
-                } else if(this.currState== State.IN_COMMENT || (currChar != ' ' && currChar != '\n' && currChar != '\t')){
+                } else if(this.currState == State.IN_COMMENT || (currChar != ' ' && currChar != '\n' && currChar != '\t')) {
                     currToken += currChar;
                     ++i;
                 } else {
@@ -194,41 +194,40 @@ public class Lexer {
     public void feedMe(String fileName) {
         List<Token>tokenList = createTokenList(fileName);
         try{
-            File lexerOutput = new File("Lexer Output.txt");
+            File lexerOutput = new File("LexerOutput.txt");
             if(lexerOutput.createNewFile()) {
                 System.out.println("File created");
-            }
-            else{
+            } else {
                 System.out.println("File already exists");
             }
-            FileWriter writer = new FileWriter("Lexer Output.txt");
-            for(Token printToken:tokenList){
+            FileWriter writer = new FileWriter("LexerOutput.txt");
+            for(Token printToken:tokenList) {
                 int numSpaces = 15-printToken.tokenName.toString().length();
                 String spaces = "";
-                for(int i= 0; i < numSpaces; i++) {
+                for(int i = 0; i < numSpaces; i++) {
                     spaces += " ";
                 }
                 writer.write(printToken.tokenName.toString());
                 writer.write(spaces + printToken.lexemeName + "\n");
             }
             writer.close();
-        }catch(IOException e){
+        }catch(IOException e) {
             System.out.println("Error occured.");
         }
     }
 
-    public List<Token> cleanTokenList(List<Token> list){
-        for(Token token:list){
-            if(keyWordMap.containsKey(token.lexemeName)){
-                token.tokenName=keyWordMap.get(token.lexemeName);
+    public List<Token> cleanTokenList(List<Token> list) {
+        for(Token token:list) {
+            if(keyWordMap.containsKey(token.lexemeName)) {
+                token.tokenName = keyWordMap.get(token.lexemeName);
             }
-            if(token.lexemeName.startsWith("!")){
+            if(token.lexemeName.startsWith("!")) {
                 token.tokenName = State.IN_COMMENT;
             }
-            if(token.tokenName == State.IN_OPERATOR){
+            if(token.tokenName == State.IN_OPERATOR) {
                 token.tokenName = State.OPERATOR;
             }
-            if(token.lexemeName==""){
+            if(token.lexemeName == "") {
                 removeList.add(token);
             }
         }
