@@ -12,7 +12,6 @@ public class Syntax {
         lines = createLines();
     }
 
-
     /*
         <Statement> -> <Declarative>
         <Declarative> -> <Type> <id>
@@ -28,6 +27,29 @@ public class Syntax {
 
         <ID> -> id
      */
+
+    public enum syntaxAnalysis {
+        STATEMENT(new syntaxAnalysis[][]{{syntaxAnalysis.DECLARATIVE},{syntaxAnalysis.ASSIGNMENT}}),
+        DECLARATIVE(new syntaxAnalysis[][]{{syntaxAnalysis.TYPE,syntaxAnalysis.IDENTIFIER}}),
+        TYPE(new syntaxAnalysis[][]{{syntaxAnalysis.TYPE}}),
+        IDENTIFIER(new syntaxAnalysis[][]{{syntaxAnalysis.IDENTIFIER}}),
+        ASSIGNMENT(new syntaxAnalysis[][]{{syntaxAnalysis.IDENTIFIER,syntaxAnalysis.EXPRESSION}}),
+        EXPRESSION(new syntaxAnalysis[][]{{syntaxAnalysis.EXPRESSION,syntaxAnalysis.TERM},{syntaxAnalysis.TERM}}),
+        TERM(new syntaxAnalysis[][]{{syntaxAnalysis.TERM,syntaxAnalysis.FACTOR},{syntaxAnalysis.FACTOR}}),
+        FACTOR(new syntaxAnalysis[][]{{syntaxAnalysis.EXPRESSION},{syntaxAnalysis.IDENTIFIER},{syntaxAnalysis.NUMBER}}),
+        NUMBER(new syntaxAnalysis[][]{{syntaxAnalysis.NUMBER}});
+
+        private syntaxAnalysis [] [] composition;
+
+        syntaxAnalysis(syntaxAnalysis [] [] composition){
+            this.composition= composition;
+        }
+
+        public syntaxAnalysis [] [] getComposition(){
+            return composition;
+        }
+    }
+
 
     public class Line{
         private List<Lexer.Token> tokens;
@@ -47,7 +69,6 @@ public class Syntax {
                 continue;
             }
             line.tokens.add(token);
-
         }
         return lines;
     }
