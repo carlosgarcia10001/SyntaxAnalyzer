@@ -12,23 +12,39 @@ public class Syntax {
         lex.feedMe(fileName);
         tokens = lex.createTokenList(fileName);
         lines = createLines();
-        parseLine(lines.get(0));
+        printAllLines();
     }
     
+    public void printAllLines(){
+        for(Line line:lines){
+            List<List<compositionBase>> list = parseLine(line);
+            for(int i = 0; i < line.tokens.size();i++){
+                System.out.print("Token: " + line.tokens.get(i).tokenName);
+                System.out.println("\t\tLexeme: " + line.tokens.get(i).lexemeName);
+                for(int j = 0; j < list.get(i).size();j++){
+                    System.out.println(list.get(i).get(j).getSyntaxString());
+                }
+            }
+        }
+    }
     public enum compositionBase {
-    	STATEMENT(0),
-        DECLARATIVE(1),
+        STATEMENT(0, "<Statement> -> <Declarative> | <Assignment>"),
+        DECLARATIVE(1, "<Declarative> -> <Type> <id>"),
         TYPE(2),
         IDENTIFIER(3),
-        ASSIGNMENT(4),
-        EXPRESSION(5),
-        TERM(6),
-        FACTOR(7),
+        ASSIGNMENT(4, "<Assignment> -> <Identifier> = <Expression>;"),
+        EXPRESSION(5, "<Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>"),
+        TERM(6, "<Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>"),
+        FACTOR(7, "<Factor> -> ( <Expression> ) | <ID> | <num>"),
         NUMBER(8),
         ERROR(-1);
-    	
-    	private int specificComposition;
 
+        private int specificComposition;
+        private String syntaxString;
+        compositionBase(int composition, String syntaxString){
+            this.syntaxString = syntaxString;
+            this.specificComposition = composition;
+        }
         compositionBase(int composition){
             this.specificComposition = composition;
         }
@@ -36,36 +52,47 @@ public class Syntax {
         public int getComposition(){
             return specificComposition;
         }
+
+        public String getSyntaxString(){
+            return syntaxString;
+        }
     }
-    
+
     public enum fullComposition {
-        STATEMENT(0),
-        DECLARATIVE(1),
+        STATEMENT(0, "<Statement> -> <Declarative> | <Assignment>"),
+        DECLARATIVE(1, "<Declarative> -> <Type> <id>"),
         TYPE(2),
         IDENTIFIER(3),
-        ASSIGNMENT(4),
-        EXPRESSION(5),
-        TERM(6),
-        FACTOR(7),
+        ASSIGNMENT(4, "<Assign> -> <Identifier> = <Expression>;"),
+        EXPRESSION(5, "<Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>"),
+        TERM(6, "<Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>"),
+        FACTOR(7, "<Factor> -> ( <Expression> ) | <ID> | <num>"),
         NUMBER(8);
 
         private int specificCompositionIndex;
-        
+        private String syntaxString;
         private compositionBase[][][] fullCompositions = {
-        		{{compositionBase.DECLARATIVE}, {compositionBase.ASSIGNMENT}},
-        		{{compositionBase.TYPE, compositionBase.IDENTIFIER}}
-        		
-        };
+                {{compositionBase.DECLARATIVE}, {compositionBase.ASSIGNMENT}},
+                {{compositionBase.TYPE, compositionBase.IDENTIFIER}}
 
+        };
+        public String getString(){
+            return syntaxString;
+        }
+        fullComposition(int index, String syntaxString){
+            this.specificCompositionIndex = index;
+            this.syntaxString = syntaxString;
+
+        }
         fullComposition(int index){
             this.specificCompositionIndex = index;
         }
-        
+
         public compositionBase[][] getComposition(){
-        	if(this.getCompositionIndex() == -1) {
-        		return null;
-        	}
-        	return this.fullCompositions[this.getCompositionIndex()];
+            if(this.getCompositionIndex() == -1) {
+                return null;
+            }
+            return this.fullCompositions[this.getCompositionIndex()];
         }
 
         public int getCompositionIndex(){
@@ -114,7 +141,6 @@ public class Syntax {
             line.tokens.add(token);
             if(token.lexemeName.equals(";")){
                 lines.add(line);
-                printLine(line);
                 line = new Line();
                 continue;
             }
@@ -149,6 +175,7 @@ public class Syntax {
 
            <ID> -> id
         */
+
     public List<List<compositionBase>>parseLine(Line line){
         List<List<compositionBase>> analysis = new ArrayList<>();
         currentParsing parser = new currentParsing(compositionBase.STATEMENT,line.tokens.get(0),line.tokens.get(1));
@@ -206,18 +233,15 @@ public class Syntax {
                 }
             }
         }
-        for(int i = 0; i < analysis.size();i++){
-            for(int j = 0; j < analysis.get(i).size();j++){
-                System.out.print(analysis.get(i).get(j) + " ");
-            }
-            System.out.println();
-        }
         return analysis;
     }
     public void printLine(Line line){
         for(Lexer.Token token: line.tokens){
-            System.out.print(token.lexemeName + " ");
+            System.out.println(token.lexemeName + " ");
         }
         System.out.println();
     }
+
+
+
 }
