@@ -133,12 +133,15 @@ public class Syntax {
                         currentCharacterAnalysis.add(syntaxAnalysis.EXPRESSION);
                         break;
                     }
-                    switch (currentCharacterAnalysis.get(currentCharacterAnalysis.size() - 1)) {
+
+                    switch (parser.currentSyntax) {
                         case STATEMENT:
                             if (parser.currentToken.tokenName == Lexer.State.IDENTIFIER) {
                                 currentCharacterAnalysis.add(syntaxAnalysis.ASSIGNMENT);
+                                parser.currentSyntax = syntaxAnalysis.ASSIGNMENT;
                             } else if (parser.currentToken.tokenName == Lexer.State.KEYWORD) {
                                 currentCharacterAnalysis.add(syntaxAnalysis.DECLARATIVE);
+                                parser.currentSyntax = syntaxAnalysis.DECLARATIVE;
                             }
                             break;
                         case ASSIGNMENT:
@@ -153,6 +156,7 @@ public class Syntax {
                             }
                             else{
                                 currentCharacterAnalysis.add(syntaxAnalysis.TERM);
+                                parser.currentSyntax = syntaxAnalysis.TERM;
                             }
                         case TERM:
                             if(parser.nextToken.lexemeName.equals("*")||parser.nextToken.lexemeName.equals("/")){
@@ -160,9 +164,9 @@ public class Syntax {
                             }
                             else{
                                 currentCharacterAnalysis.add(syntaxAnalysis.FACTOR);
+                                parser.currentSyntax = syntaxAnalysis.FACTOR;
                             }
                     }
-
                 }
             }
         }
