@@ -15,49 +15,89 @@ public class Syntax {
         parseLine(lines.get(0));
     }
 
-    public enum syntaxAnalysis {
+    public enum compositionBase {
         STATEMENT(0),
         DECLARATIVE(1),
         TYPE(2),
         IDENTIFIER(3),
-        ASSIGNMENT(4), //=
-        EXPRESSION(5),//+,-
-        TERM(6),//*,/
+        ASSIGNMENT(4),
+        EXPRESSION(5),
+        TERM(6),
         FACTOR(7),
         NUMBER(8),
         ERROR(-1);
-        private int id;
-        syntaxAnalysis(int id){
 
-            this.id = id;
+        private int specificComposition;
+
+        compositionBase(int composition){
+            this.specificComposition = composition;
         }
 
-        public int getId(){
-            return id;
+        public int getComposition(){
+            return specificComposition;
+        }
+    }
+
+    public enum fullComposition {
+        STATEMENT(0, "<Statement> -> <Declarative> | <Assignment>"),
+        DECLARATIVE(1, "<Declarative> -> <Type> <id>"),
+        TYPE(2),
+        IDENTIFIER(3),
+        ASSIGNMENT(4, "<Assign> -> <Identifier> = <Expression>;"),
+        EXPRESSION(5, "<Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>"),
+        TERM(6, "<Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>"),
+        FACTOR(7, "<Factor> -> ( <Expression> ) | <ID> | <num>"),
+        NUMBER(8);
+
+        private int specificCompositionIndex;
+        private String syntaxString;
+        private compositionBase[][][] fullCompositions = {
+                {{compositionBase.DECLARATIVE}, {compositionBase.ASSIGNMENT}},
+                {{compositionBase.TYPE, compositionBase.IDENTIFIER}}
+
+        };
+        fullComposition(int index, String syntaxString){
+            this.specificCompositionIndex = index;
+            this.syntaxString = syntaxString;
+
+        }
+        fullComposition(int index){
+            this.specificCompositionIndex = index;
         }
 
-        public static syntaxAnalysis returnEnumFromId(int index){
+        public compositionBase[][] getComposition(){
+            if(this.getCompositionIndex() == -1) {
+                return null;
+            }
+            return this.fullCompositions[this.getCompositionIndex()];
+        }
+
+        public int getCompositionIndex(){
+            return specificCompositionIndex;
+        }
+
+        public static compositionBase returnEnumFromId(int index){
             switch(index){
                 case 0:
-                    return syntaxAnalysis.STATEMENT;
+                    return compositionBase.STATEMENT;
                 case 1:
-                    return syntaxAnalysis.DECLARATIVE;
+                    return compositionBase.DECLARATIVE;
                 case 2:
-                    return syntaxAnalysis.TYPE;
+                    return compositionBase.TYPE;
                 case 3:
-                    return syntaxAnalysis.IDENTIFIER;
+                    return compositionBase.IDENTIFIER;
                 case 4:
-                    return syntaxAnalysis.ASSIGNMENT;
+                    return compositionBase.ASSIGNMENT;
                 case 5:
-                    return syntaxAnalysis.EXPRESSION;
+                    return compositionBase.EXPRESSION;
                 case 6:
-                    return syntaxAnalysis.TERM;
+                    return compositionBase.TERM;
                 case 7:
-                    return syntaxAnalysis.FACTOR;
+                    return compositionBase.FACTOR;
                 case 8:
-                    return syntaxAnalysis.NUMBER;
+                    return compositionBase.NUMBER;
             }
-            return syntaxAnalysis.ERROR;
+            return compositionBase.ERROR;
         }
     }
 
@@ -88,11 +128,11 @@ public class Syntax {
     }
 
     public class currentParsing{
-        public syntaxAnalysis currentSyntax;
+        public compositionBase currentSyntax;
         public Lexer.Token currentToken;
         public Lexer.Token nextToken;
 
-        public currentParsing(syntaxAnalysis currentSyntax,Lexer.Token currentToken, Lexer.Token nextToken){
+        public currentParsing(compositionBase currentSyntax,Lexer.Token currentToken, Lexer.Token nextToken){
             this.currentSyntax=currentSyntax;
             this.currentToken=currentToken;
             this.nextToken=nextToken;
@@ -113,35 +153,35 @@ public class Syntax {
 
            <ID> -> id
         */
-    public List<List<syntaxAnalysis>>parseLine(Line line){
-        List<List<syntaxAnalysis>> analysis = new ArrayList<>();
-        currentParsing parser = new currentParsing(syntaxAnalysis.STATEMENT,line.tokens.get(0),line.tokens.get(1));
-        parser.currentSyntax = syntaxAnalysis.STATEMENT;
+    public List<List<compositionBase>>parseLine(Line line){
+        List<List<compositionBase>> analysis = new ArrayList<>();
+        currentParsing parser = new currentParsing(compositionBase.STATEMENT,line.tokens.get(0),line.tokens.get(1));
+        parser.currentSyntax = compositionBase.STATEMENT;
         for(int i = 0; i < line.tokens.size();i++){
             analysis.add(new ArrayList<>());
         }
-        analysis.get(0).add(syntaxAnalysis.STATEMENT);
+        analysis.get(0).add(compositionBase.STATEMENT);
         for(int i = 0; i < line.tokens.size()-1;i++){
-            List<syntaxAnalysis> currentCharacterAnalysis = analysis.get(i);
+            List<compositionBase> currentCharacterAnalysis = analysis.get(i);
             parser.currentToken=line.tokens.get(i);
             parser.nextToken=line.tokens.get(i+1);
             outerwhile:
             {
                 while (true) {
                     if (parser.currentToken.tokenName == Lexer.State.OPERATOR && parser.currentToken.lexemeName.equals("=")) {
-                        parser.currentSyntax = syntaxAnalysis.EXPRESSION;
-                        currentCharacterAnalysis.add(syntaxAnalysis.EXPRESSION);
+                        parser.currentSyntax = compositionBase.EXPRESSION;
+                        currentCharacterAnalysis.add(compositionBase.EXPRESSION);
                         break;
                     }
 
                     switch (parser.currentSyntax) {
                         case STATEMENT:
                             if (parser.currentToken.tokenName == Lexer.State.IDENTIFIER) {
-                                currentCharacterAnalysis.add(syntaxAnalysis.ASSIGNMENT);
-                                parser.currentSyntax = syntaxAnalysis.ASSIGNMENT;
+                                currentCharacterAnalysis.add(compositionBase.ASSIGNMENT);
+                                parser.currentSyntax = compositionBase.ASSIGNMENT;
                             } else if (parser.currentToken.tokenName == Lexer.State.KEYWORD) {
-                                currentCharacterAnalysis.add(syntaxAnalysis.DECLARATIVE);
-                                parser.currentSyntax = syntaxAnalysis.DECLARATIVE;
+                                currentCharacterAnalysis.add(compositionBase.DECLARATIVE);
+                                parser.currentSyntax = compositionBase.DECLARATIVE;
                             }
                             break;
                         case ASSIGNMENT:
@@ -155,16 +195,16 @@ public class Syntax {
                                 break outerwhile;
                             }
                             else{
-                                currentCharacterAnalysis.add(syntaxAnalysis.TERM);
-                                parser.currentSyntax = syntaxAnalysis.TERM;
+                                currentCharacterAnalysis.add(compositionBase.TERM);
+                                parser.currentSyntax = compositionBase.TERM;
                             }
                         case TERM:
                             if(parser.nextToken.lexemeName.equals("*")||parser.nextToken.lexemeName.equals("/")){
                                 break outerwhile;
                             }
                             else{
-                                currentCharacterAnalysis.add(syntaxAnalysis.FACTOR);
-                                parser.currentSyntax = syntaxAnalysis.FACTOR;
+                                currentCharacterAnalysis.add(compositionBase.FACTOR);
+                                parser.currentSyntax = compositionBase.FACTOR;
                             }
                     }
                 }
@@ -184,4 +224,6 @@ public class Syntax {
         }
         System.out.println();
     }
+
+
 }
