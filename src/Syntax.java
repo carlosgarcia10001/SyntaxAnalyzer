@@ -3,6 +3,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/*
+<Statement> -> <Declarative>
+<Declarative> -> <Type> <id>
+
+<Statement> -> <Assign>
+<Assign> -> <ID> = <Expression>;
+
+<Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>
+
+<Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>
+
+<Factor> -> ( <Expression> ) | <ID> | <num>
+
+<ID> -> id
+*/
+
 public class Syntax {
     private Lexer lex;
     private List<Lexer.Token> tokens;
@@ -17,22 +33,9 @@ public class Syntax {
         	System.out.println(e.getMessage());
         	return;
         }
-        printAllLines();
-        
+        printAllLines();   
     }
     
-    public void printAllLines(){
-        for(Line line : lines){
-            List<List<compositionBase>> list = parseLine(line);
-            for(int i = 0; i < line.tokens.size(); i++){
-                System.out.print("Token: " + line.tokens.get(i).tokenName);
-                System.out.println("\t\tLexeme: " + line.tokens.get(i).lexemeName);
-                for(int j = 0; j < list.get(i).size(); j++){
-                    System.out.println(list.get(i).get(j).getSyntaxString());
-                }
-            }
-        }
-    }
     public enum compositionBase {
         STATEMENT(0, "<Statement> -> <Declarative> | <Assignment>"),
         DECLARATIVE(1, "<Declarative> -> <Type> <id>"),
@@ -47,10 +50,12 @@ public class Syntax {
 
         private int specificComposition;
         private String syntaxString;
+        
         compositionBase(int composition, String syntaxString){
             this.syntaxString = syntaxString;
             this.specificComposition = composition;
         }
+        
         compositionBase(int composition){
             this.specificComposition = composition;
         }
@@ -81,6 +86,7 @@ public class Syntax {
                 {{compositionBase.DECLARATIVE}, {compositionBase.ASSIGNMENT}},
                 {{compositionBase.TYPE, compositionBase.IDENTIFIER}}
         };
+        
         public String getString(){
             return syntaxString;
         }
@@ -135,8 +141,6 @@ public class Syntax {
             tokens = new ArrayList<>();
         }
     }
-    
-    
 
     public List<Line> createLines() throws Exception{
         List<Line> lines = new ArrayList<>();
@@ -177,23 +181,6 @@ public class Syntax {
             this.nextToken = nextToken;
         }
     }
-    /*
-       <Statement> -> <Declarative>
-       <Declarative> -> <Type> <id>
-
-       <Statement> -> <Assign>
-       <Assign> -> <ID> = <Expression>;
-       
-       type id = expression --> <declarative> <assign>
-
-       <Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>
-
-       <Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>
-
-       <Factor> -> ( <Expression> ) | <ID> | <num>
-
-       <ID> -> id
-    */
     
     // Parses the input line 
     public List<List<compositionBase>> parseLine(Line line){
@@ -211,6 +198,10 @@ public class Syntax {
         for(int i = 0; i < line.tokens.size()-1; i++){
             List<compositionBase> currentCharacterAnalysis = analysis.get(i);
             parser.currentToken = line.tokens.get(i);
+            //Ignore displaying comments
+            if(parser.currentToken.tokenName == Lexer.State.IN_COMMENT) {
+            	continue;
+            }
             parser.nextToken = line.tokens.get(i+1);
             outerwhile:
             {
@@ -257,13 +248,26 @@ public class Syntax {
         }
         return analysis;
     }
+    
     public void printLine(Line line){
         for(Lexer.Token token : line.tokens){
             System.out.print(token.lexemeName + " ");
         }
         System.out.println();
     }
-
-
-
+    
+    public void printAllLines(){
+        for(Line line : lines){
+            List<List<compositionBase>> list = parseLine(line);
+            for(int i = 0; i < line.tokens.size(); i++){
+            	if(line.tokens.get(i).tokenName != Lexer.State.IN_COMMENT) {
+            		System.out.print("Token: " + line.tokens.get(i).tokenName);
+            		System.out.println("\t\tLexeme: " + line.tokens.get(i).lexemeName);
+            		for(int j = 0; j < list.get(i).size(); j++){
+            			System.out.println(list.get(i).get(j).getSyntaxString());
+            		}            		
+            	}
+            }
+        }
+    }
 }
