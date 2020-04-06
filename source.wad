@@ -1,5 +1,3 @@
-
-x=a + b;
-z=c+ d;
-a=e-f;
-b=g*n;
+if(x == true){
+	x=3
+}

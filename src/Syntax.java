@@ -11,17 +11,23 @@ public class Syntax {
         lex = new Lexer();
         lex.feedMe(fileName);
         tokens = lex.createTokenList(fileName);
-        lines = createLines();
+        try {
+        	lines = createLines();        	
+        } catch(Exception e){
+        	System.out.println(e.getMessage());
+        	return;
+        }
         printAllLines();
+        
     }
     
     public void printAllLines(){
-        for(Line line:lines){
+        for(Line line : lines){
             List<List<compositionBase>> list = parseLine(line);
-            for(int i = 0; i < line.tokens.size();i++){
+            for(int i = 0; i < line.tokens.size(); i++){
                 System.out.print("Token: " + line.tokens.get(i).tokenName);
                 System.out.println("\t\tLexeme: " + line.tokens.get(i).lexemeName);
-                for(int j = 0; j < list.get(i).size();j++){
+                for(int j = 0; j < list.get(i).size(); j++){
                     System.out.println(list.get(i).get(j).getSyntaxString());
                 }
             }
@@ -74,7 +80,6 @@ public class Syntax {
         private compositionBase[][][] fullCompositions = {
                 {{compositionBase.DECLARATIVE}, {compositionBase.ASSIGNMENT}},
                 {{compositionBase.TYPE, compositionBase.IDENTIFIER}}
-
         };
         public String getString(){
             return syntaxString;
@@ -124,27 +129,39 @@ public class Syntax {
         }
     }
 
-
     public class Line{
         private List<Lexer.Token> tokens;
         public Line(){
             tokens = new ArrayList<>();
         }
     }
+    
+    
 
-
-    public List<Line> createLines(){
+    public List<Line> createLines() throws Exception{
         List<Line> lines = new ArrayList<>();
         Line line = new Line();
+        Lexer.Token currToken;
+        
+        List<String> errors = new ArrayList<>();
 
-        for(Lexer.Token token: tokens){
-            line.tokens.add(token);
-            if(token.lexemeName.equals(";")){
+        for(int i = 0; i < tokens.size(); i++){
+        	currToken = tokens.get(i);
+            line.tokens.add(currToken);
+            if(currToken.lexemeName.equals(";")){
                 lines.add(line);
                 line = new Line();
                 continue;
+            } else if(i == tokens.size()-1) {
+            	//They didn't at least have the end of the token with a semicolon
+            	errors.add("Expected a semicolon after token " + currToken.lexemeName);
             }
-
+        }
+        if(errors.size() != 0) {
+        	for(String error : errors) {
+        		System.out.println(error);
+        	}
+        	throw new Exception("Syntax Error");
         }
         return lines;
     }
@@ -154,40 +171,47 @@ public class Syntax {
         public Lexer.Token currentToken;
         public Lexer.Token nextToken;
 
-        public currentParsing(compositionBase currentSyntax,Lexer.Token currentToken, Lexer.Token nextToken){
-            this.currentSyntax=currentSyntax;
-            this.currentToken=currentToken;
-            this.nextToken=nextToken;
+        public currentParsing(compositionBase currentSyntax, Lexer.Token currentToken, Lexer.Token nextToken){
+            this.currentSyntax = currentSyntax;
+            this.currentToken = currentToken;
+            this.nextToken = nextToken;
         }
     }
     /*
-           <Statement> -> <Declarative>
-           <Declarative> -> <Type> <id>
+       <Statement> -> <Declarative>
+       <Declarative> -> <Type> <id>
 
-           <Statement> -> <Assign>
-           <Assign> -> <ID> = <Expression>;
+       <Statement> -> <Assign>
+       <Assign> -> <ID> = <Expression>;
+       
+       type id = expression --> <declarative> <assign>
 
-           <Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>
+       <Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>
 
-           <Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>
+       <Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>
 
-           <Factor> -> ( <Expression> ) | <ID> | <num>
+       <Factor> -> ( <Expression> ) | <ID> | <num>
 
-           <ID> -> id
-        */
-
-    public List<List<compositionBase>>parseLine(Line line){
+       <ID> -> id
+    */
+    
+    // Parses the input line 
+    public List<List<compositionBase>> parseLine(Line line){
         List<List<compositionBase>> analysis = new ArrayList<>();
-        currentParsing parser = new currentParsing(compositionBase.STATEMENT,line.tokens.get(0),line.tokens.get(1));
+        
+        currentParsing parser = new currentParsing(compositionBase.STATEMENT, line.tokens.get(0), line.tokens.get(1));
         parser.currentSyntax = compositionBase.STATEMENT;
-        for(int i = 0; i < line.tokens.size();i++){
+        
+        for(int i = 0; i < line.tokens.size(); i++){
             analysis.add(new ArrayList<>());
         }
+        
         analysis.get(0).add(compositionBase.STATEMENT);
-        for(int i = 0; i < line.tokens.size()-1;i++){
+        
+        for(int i = 0; i < line.tokens.size()-1; i++){
             List<compositionBase> currentCharacterAnalysis = analysis.get(i);
-            parser.currentToken=line.tokens.get(i);
-            parser.nextToken=line.tokens.get(i+1);
+            parser.currentToken = line.tokens.get(i);
+            parser.nextToken = line.tokens.get(i+1);
             outerwhile:
             {
                 while (true) {
@@ -216,16 +240,14 @@ public class Syntax {
                         case EXPRESSION:
                             if(parser.nextToken.lexemeName.equals("+")||parser.nextToken.lexemeName.equals("-")){
                                 break outerwhile;
-                            }
-                            else{
+                            }else{
                                 currentCharacterAnalysis.add(compositionBase.TERM);
                                 parser.currentSyntax = compositionBase.TERM;
                             }
                         case TERM:
                             if(parser.nextToken.lexemeName.equals("*")||parser.nextToken.lexemeName.equals("/")){
                                 break outerwhile;
-                            }
-                            else{
+                            }else{
                                 currentCharacterAnalysis.add(compositionBase.FACTOR);
                                 parser.currentSyntax = compositionBase.FACTOR;
                             }
@@ -236,8 +258,8 @@ public class Syntax {
         return analysis;
     }
     public void printLine(Line line){
-        for(Lexer.Token token: line.tokens){
-            System.out.println(token.lexemeName + " ");
+        for(Lexer.Token token : line.tokens){
+            System.out.print(token.lexemeName + " ");
         }
         System.out.println();
     }
