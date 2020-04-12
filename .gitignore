@@ -1,3 +1,7 @@
 .classpath
 .project
 out/
+/bin/
+src/com/carlosjacob/exceptions/
+LexerOutput.txt
+
