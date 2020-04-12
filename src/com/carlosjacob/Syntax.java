@@ -183,32 +183,41 @@ public class Syntax {
         }
     }
     
-    // Parses the input line 
+    // Parses the input line and returns a list of the proper grammatical rules for that token
     public List<List<compositionBase>> parseLine(Line line){
-        List<List<compositionBase>> analysis = new ArrayList<>();
+    	
+    	//A 2D array containing the rules for each token in the line
+        List<List<compositionBase>> tokenRules = new ArrayList<>();
         
         currentParsing parser = new currentParsing(compositionBase.STATEMENT, line.tokens.get(0), line.tokens.get(1));
         parser.currentSyntax = compositionBase.STATEMENT;
         
         for(int i = 0; i < line.tokens.size(); i++){
-            analysis.add(new ArrayList<>());
+            tokenRules.add(new ArrayList<>());
         }
         
-        analysis.get(0).add(compositionBase.STATEMENT);
+        //"Blimith Today at 11:16 AM
+        //Every line is a statement of some sort"
+        tokenRules.get(0).add(compositionBase.STATEMENT);
         
         for(int i = 0; i < line.tokens.size(); i++){
-            List<compositionBase> currentCharacterAnalysis = analysis.get(i);
+            List<compositionBase> currentCharacterAnalysis = tokenRules.get(i);
             parser.currentToken = line.tokens.get(i);
+            
             //Ignore displaying comments
             if(parser.currentToken.tokenName == Lexer.State.IN_COMMENT) {
             	continue;
             }
+            
+            //Check to make sure we can get the next token
+            //If we can, get it, else the next is the current
             if(i != line.tokens.size()-1) {
             	parser.nextToken = line.tokens.get(i+1);            	
             } else {
             	parser.nextToken = parser.currentToken;
             }
-            outerwhile:
+            
+            rulesNeedToBeAdded:
             {
                 while (true) {
                     if (parser.currentToken.tokenName == Lexer.State.OPERATOR && parser.currentToken.lexemeName.equals("=")) {
@@ -232,12 +241,12 @@ public class Syntax {
                         case IDENTIFIER:
                         case DECLARATIVE:
                         case FACTOR:
-//                            break outerwhile;
+//                            break rulesNeedToBeAdded;
                         case EXPRESSION:
                             if(parser.nextToken.lexemeName.equals("+")||parser.nextToken.lexemeName.equals("-")){
                                 currentCharacterAnalysis.add(compositionBase.TERM);
                                 parser.currentSyntax = compositionBase.TERM;
-                                break outerwhile;
+//                                break rulesNeedToBeAdded;
                             }else{
                                 currentCharacterAnalysis.add(compositionBase.TERM);
                                 parser.currentSyntax = compositionBase.TERM;
@@ -245,17 +254,17 @@ public class Syntax {
                         case TERM:
                             if(parser.nextToken.lexemeName.equals("*")||parser.nextToken.lexemeName.equals("/")){
 //                            	break;
-                                break outerwhile;
+                                break rulesNeedToBeAdded;
                             }else{
                                 currentCharacterAnalysis.add(compositionBase.FACTOR);
                                 parser.currentSyntax = compositionBase.FACTOR;
-                                break outerwhile;
+                                break rulesNeedToBeAdded;
                             }
                     }
                 }
             }
         }
-        return analysis;
+        return tokenRules;
     }
     
     public void printLine(Line line){
