@@ -33,14 +33,16 @@ public class Syntax {
     
     public enum compositionBase {
         STATEMENT(0, "<Statement> -> <Declarative> | <Assignment>"),
-        DECLARATIVE(1, "<Declarative> -> <Type> <id>"),
-        TYPE(2),
+        DECLARATIVE(1, "<Type> <ID> <MoreIds>; | <empty>"),
+        TYPE(2, "int, float, bool"),
         IDENTIFIER(3),
         ASSIGNMENT(4, "<Assignment> -> <Identifier> = <Expression>;"),
         EXPRESSION(5, "<Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>"),
         TERM(6, "<Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>"),
         FACTOR(7, "<Factor> -> ( <Expression> ) | <ID> | <num>"),
         NUMBER(8),
+        EMPTY(9,"<Empty> -> Epsilon"),
+        PRIMARY(10,"<ID>,<num>"),
         ERROR(-1);
 
         private int specificComposition;
@@ -72,8 +74,10 @@ public class Syntax {
         ASSIGNMENT(4, "<Assign> -> <Identifier> = <Expression>;"),
         EXPRESSION(5, "<Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>"),
         TERM(6, "<Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>"),
-        FACTOR(7, "<Factor> -> ( <Expression> ) | <ID> | <num>"),
-        NUMBER(8);
+        FACTOR(7, "<Factor> -> ( <Expression> ) | <Primary>"),
+        NUMBER(8),
+        EMPTY(9,"<Empty> -> Epsilon"),
+        PRIMARY(10,"<Primary>-><ID>,<num>");
 
         private int specificCompositionIndex;
         private String syntaxString;
@@ -214,12 +218,15 @@ public class Syntax {
             rulesNeedToBeAdded:
             {
                 while (true) {
-                    if (parser.currentToken.tokenName == Lexer.State.OPERATOR && parser.currentToken.lexemeName.equals("=")) {
-                        parser.currentSyntax = compositionBase.EXPRESSION;
-                        currentCharacterAnalysis.add(compositionBase.EXPRESSION);
+                    if(parser.currentToken.lexemeName.equals(";")){
+                        parser.currentSyntax = compositionBase.EMPTY;
+                        currentCharacterAnalysis.add(compositionBase.EMPTY);
                         break;
                     }
-
+                    if (parser.currentToken.tokenName == Lexer.State.OPERATOR && parser.currentToken.lexemeName.equals("=")) {
+                        parser.currentSyntax = compositionBase.EXPRESSION;
+                        break;
+                    }
                     switch (parser.currentSyntax) {
                         case STATEMENT:
                             if (parser.currentToken.tokenName == Lexer.State.IDENTIFIER) {
@@ -280,9 +287,10 @@ public class Syntax {
             List<List<compositionBase>> list = parseLine(line);
             for(int i = 0; i < line.tokens.size(); i++){
             	currToken = line.tokens.get(i);
+                System.out.print("Token: " + currToken.tokenName);
+                System.out.println("\t\tLexeme: " + currToken.lexemeName);
             	if(currToken.tokenName != Lexer.State.IN_COMMENT && list.get(i).size() != 0) {
-            		System.out.print("Token: " + currToken.tokenName);
-            		System.out.println("\t\tLexeme: " + currToken.lexemeName);
+
             		
             		//Print all the syntax rules for this token type
             		for(int j = 0; j < list.get(i).size(); j++){
