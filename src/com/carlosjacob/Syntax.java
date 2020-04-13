@@ -19,16 +19,15 @@ import java.util.List;
 */
 
 public class Syntax {
-    private List<Line> lines;
     
     public Syntax(List<Token> lexerTokens){
         try {
-        	lines = createLines(lexerTokens);        	
+        	List<Line> lines = createLines(lexerTokens);        	
+        	printAllLines(lines); 
         } catch(Exception e){
         	System.out.println(e.getMessage());
         	return;
         }
-        printAllLines();   
     }
     
     public enum compositionBase {
@@ -279,7 +278,7 @@ public class Syntax {
         System.out.println();
     }
     
-    public void printAllLines(){
+    public void printAllLines(List<Line> lines){
     	Token currToken = null;
         for(Line line : lines){
             List<List<compositionBase>> list = parseLine(line);
