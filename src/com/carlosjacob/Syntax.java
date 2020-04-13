@@ -80,10 +80,10 @@ public class Syntax {
         ASSIGNMENT(4, "<Assign> -> <Identifier> = <Expression>;"),
         EXPRESSION(5, "<Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>"),
         TERM(6, "<Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>"),
-        FACTOR(7, "<Factor> -> ( <Expression> ) | <ID> | <num>"),
+        FACTOR(7, "<Factor> -> ( <Expression> ) | <Primary>"),
         NUMBER(8),
         EMPTY(9,"<Empty> -> Epsilon"),
-        PRIMARY(10,"<ID>,<num>");
+        PRIMARY(10,"<Primary>-><ID>,<num>");
 
         private int specificCompositionIndex;
         private String syntaxString;
