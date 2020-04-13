@@ -134,7 +134,7 @@ public class Syntax {
     }
 
     public class Line{
-        private List<Token> tokens;
+        public List<Token> tokens;
         public Line(){
             tokens = new ArrayList<>();
         }
