@@ -13,10 +13,6 @@ public class Lexer {
     final String keyWordList [] = {"int", "float", "bool", "true", "false", "if", "else", "then", "endif", "while", "whileend", "do", "doend", "for", "forend", "input", "output", "and", "or", "not"};
     Map<String,State> keyWordMap = new HashMap<>();
     List<Token>removeList = new ArrayList<>();
-    class Token{
-        public State tokenName;
-        public String lexemeName;
-    }
 
     public enum State {
         REJECT(-1),
@@ -120,7 +116,7 @@ public class Lexer {
     public List<Token> createTokenList(String fileName) {
         File file = new File(fileName);
         Scanner input = null;
-        List<Token>tokenList = new ArrayList<>();
+        List<Token> tokenList = new ArrayList<>();
         try {
             input = new Scanner(file);
         } catch (FileNotFoundException e) {
@@ -192,8 +188,8 @@ public class Lexer {
     }
 
 
-    public void feedMe(String fileName) {
-        List<Token>tokenList = createTokenList(fileName);
+    public void createLexerOutputFile(List<Token> tokenList) {
+        
         try{
             File lexerOutput = new File("LexerOutput.txt");
             if(lexerOutput.createNewFile()) {
@@ -202,9 +198,11 @@ public class Lexer {
                 System.out.println("File already exists");
             }
             FileWriter writer = new FileWriter("LexerOutput.txt");
-            for(Token printToken:tokenList) {
+            
+            for(Token printToken : tokenList) {
                 int numSpaces = 15-printToken.tokenName.toString().length();
                 String spaces = "";
+                
                 for(int i = 0; i < numSpaces; i++) {
                     spaces += " ";
                 }

@@ -1,8 +1,6 @@
 package com.carlosjacob;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /*
 <Statement> -> <Declarative>
@@ -21,15 +19,11 @@ import java.util.Map;
 */
 
 public class Syntax {
-    private Lexer lex;
-    private List<Lexer.Token> tokens;
     private List<Line> lines;
-    public Syntax(String fileName){
-        lex = new Lexer();
-        lex.feedMe(fileName);
-        tokens = lex.createTokenList(fileName);
+    
+    public Syntax(List<Token> lexerTokens){
         try {
-        	lines = createLines();        	
+        	lines = createLines(lexerTokens);        	
         } catch(Exception e){
         	System.out.println(e.getMessage());
         	return;
@@ -137,27 +131,27 @@ public class Syntax {
     }
 
     public class Line{
-        private List<Lexer.Token> tokens;
+        private List<Token> tokens;
         public Line(){
             tokens = new ArrayList<>();
         }
     }
 
-    public List<Line> createLines() throws Exception{
+    public List<Line> createLines(List<Token> tokensFromLexer) throws Exception{
         List<Line> lines = new ArrayList<>();
         Line line = new Line();
-        Lexer.Token currToken;
+        Token currToken;
         
         List<String> errors = new ArrayList<>();
 
-        for(int i = 0; i < tokens.size(); i++){
-        	currToken = tokens.get(i);
+        for(int i = 0; i < tokensFromLexer.size(); i++){
+        	currToken = tokensFromLexer.get(i);
             line.tokens.add(currToken);
             if(currToken.lexemeName.equals(";")){
                 lines.add(line);
                 line = new Line();
                 continue;
-            } else if(i == tokens.size()-1) {
+            } else if(i == tokensFromLexer.size()-1) {
             	//They didn't at least have the end of the token with a semicolon
             	errors.add("Expected a semicolon after token " + currToken.lexemeName);
             }
@@ -173,10 +167,10 @@ public class Syntax {
 
     public class currentParsing{
         public compositionBase currentSyntax;
-        public Lexer.Token currentToken;
-        public Lexer.Token nextToken;
+        public Token currentToken;
+        public Token nextToken;
 
-        public currentParsing(compositionBase currentSyntax, Lexer.Token currentToken, Lexer.Token nextToken){
+        public currentParsing(compositionBase currentSyntax, Token currentToken, Token nextToken){
             this.currentSyntax = currentSyntax;
             this.currentToken = currentToken;
             this.nextToken = nextToken;
@@ -260,6 +254,12 @@ public class Syntax {
                                 parser.currentSyntax = compositionBase.FACTOR;
                                 break rulesNeedToBeAdded;
                             }
+					case ERROR:
+						break;
+					case TYPE:
+						break;
+					default:
+						break;
                     }
                 }
             }
@@ -268,14 +268,14 @@ public class Syntax {
     }
     
     public void printLine(Line line){
-        for(Lexer.Token token : line.tokens){
+        for(Token token : line.tokens){
             System.out.print(token.lexemeName + " ");
         }
         System.out.println();
     }
     
     public void printAllLines(){
-    	Lexer.Token currToken = null;
+    	Token currToken = null;
         for(Line line : lines){
             List<List<compositionBase>> list = parseLine(line);
             for(int i = 0; i < line.tokens.size(); i++){
