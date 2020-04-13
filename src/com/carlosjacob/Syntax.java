@@ -39,8 +39,8 @@ public class Syntax {
     
     public enum compositionBase {
         STATEMENT(0, "<Statement> -> <Declarative> | <Assignment>"),
-        DECLARATIVE(1, "<Declarative> -> <Type> <id>"),
-        TYPE(2),
+        DECLARATIVE(1, "<Type> <ID> <MoreIds>; | <empty>"),
+        TYPE(2, "int, float, bool"),
         IDENTIFIER(3),
         ASSIGNMENT(4, "<Assignment> -> <Identifier> = <Expression>;"),
         EXPRESSION(5, "<Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>"),
@@ -48,6 +48,7 @@ public class Syntax {
         FACTOR(7, "<Factor> -> ( <Expression> ) | <ID> | <num>"),
         NUMBER(8),
         EMPTY(9,"<Empty> -> Epsilon"),
+        PRIMARY(10,"<ID>,<num>"),
         ERROR(-1);
 
         private int specificComposition;
@@ -81,7 +82,8 @@ public class Syntax {
         TERM(6, "<Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>"),
         FACTOR(7, "<Factor> -> ( <Expression> ) | <ID> | <num>"),
         NUMBER(8),
-        EMPTY(9,"<Empty> -> Epsilon");
+        EMPTY(9,"<Empty> -> Epsilon"),
+        PRIMARY(10,"<ID>,<num>");
 
         private int specificCompositionIndex;
         private String syntaxString;
@@ -225,13 +227,12 @@ public class Syntax {
                     if(parser.currentToken.lexemeName.equals(";")){
                         parser.currentSyntax = compositionBase.EMPTY;
                         currentCharacterAnalysis.add(compositionBase.EMPTY);
-                        break rulesNeedToBeAdded;
+                        break;
                     }
                     if (parser.currentToken.tokenName == Lexer.State.OPERATOR && parser.currentToken.lexemeName.equals("=")) {
                         parser.currentSyntax = compositionBase.EXPRESSION;
                         break;
                     }
-
                     switch (parser.currentSyntax) {
                         case STATEMENT:
                             if (parser.currentToken.tokenName == Lexer.State.IDENTIFIER) {
