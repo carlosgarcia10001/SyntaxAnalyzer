@@ -47,6 +47,7 @@ public class Syntax {
         TERM(6, "<Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>"),
         FACTOR(7, "<Factor> -> ( <Expression> ) | <ID> | <num>"),
         NUMBER(8),
+        EMPTY(9,"<Empty> -> Epsilon"),
         ERROR(-1);
 
         private int specificComposition;
@@ -79,7 +80,8 @@ public class Syntax {
         EXPRESSION(5, "<Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>"),
         TERM(6, "<Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>"),
         FACTOR(7, "<Factor> -> ( <Expression> ) | <ID> | <num>"),
-        NUMBER(8);
+        NUMBER(8),
+        EMPTY(9,"<Empty> -> Epsilon");
 
         private int specificCompositionIndex;
         private String syntaxString;
@@ -220,9 +222,13 @@ public class Syntax {
             rulesNeedToBeAdded:
             {
                 while (true) {
+                    if(parser.currentToken.lexemeName.equals(";")){
+                        parser.currentSyntax = compositionBase.EMPTY;
+                        currentCharacterAnalysis.add(compositionBase.EMPTY);
+                        break rulesNeedToBeAdded;
+                    }
                     if (parser.currentToken.tokenName == Lexer.State.OPERATOR && parser.currentToken.lexemeName.equals("=")) {
                         parser.currentSyntax = compositionBase.EXPRESSION;
-                        currentCharacterAnalysis.add(compositionBase.EXPRESSION);
                         break;
                     }
 
@@ -280,9 +286,10 @@ public class Syntax {
             List<List<compositionBase>> list = parseLine(line);
             for(int i = 0; i < line.tokens.size(); i++){
             	currToken = line.tokens.get(i);
+                System.out.print("Token: " + currToken.tokenName);
+                System.out.println("\t\tLexeme: " + currToken.lexemeName);
             	if(currToken.tokenName != Lexer.State.IN_COMMENT && list.get(i).size() != 0) {
-            		System.out.print("Token: " + currToken.tokenName);
-            		System.out.println("\t\tLexeme: " + currToken.lexemeName);
+
             		
             		//Print all the syntax rules for this token type
             		for(int j = 0; j < list.get(i).size(); j++){
