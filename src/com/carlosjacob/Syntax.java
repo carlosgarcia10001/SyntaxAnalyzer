@@ -215,63 +215,61 @@ public class Syntax {
             	parser.nextToken = parser.currentToken;
             }
             
-            rulesNeedToBeAdded:
-            {
-                while (true) {
-                    if(parser.currentToken.lexemeName.equals(";")){
-                        parser.currentSyntax = compositionBase.EMPTY;
-                        currentCharacterAnalysis.add(compositionBase.EMPTY);
-                        break;
-                    }
-                    if (parser.currentToken.tokenName == Lexer.State.OPERATOR && parser.currentToken.lexemeName.equals("=")) {
-                        parser.currentSyntax = compositionBase.EXPRESSION;
-                        break;
-                    }
-                    switch (parser.currentSyntax) {
-                        case STATEMENT:
-                            if (parser.currentToken.tokenName == Lexer.State.IDENTIFIER) {
-                                currentCharacterAnalysis.add(compositionBase.ASSIGNMENT);
-                                parser.currentSyntax = compositionBase.ASSIGNMENT;
-                            } else if (parser.currentToken.tokenName == Lexer.State.KEYWORD) {
-                                currentCharacterAnalysis.add(compositionBase.DECLARATIVE);
-                                parser.currentSyntax = compositionBase.DECLARATIVE;
-                            }
-                            break;
-                        case ASSIGNMENT:
-                        case NUMBER:
-                        case IDENTIFIER:
-                        case DECLARATIVE:
-                        case FACTOR:
-//                            break rulesNeedToBeAdded;
-                        case EXPRESSION:
-                            if(parser.nextToken.lexemeName.equals("+")||parser.nextToken.lexemeName.equals("-")){
-                                currentCharacterAnalysis.add(compositionBase.TERM);
-                                parser.currentSyntax = compositionBase.TERM;
-//                                break rulesNeedToBeAdded;
-                            }else{
-                                currentCharacterAnalysis.add(compositionBase.TERM);
-                                parser.currentSyntax = compositionBase.TERM;
-                            }
-                        case TERM:
-                            if(parser.nextToken.lexemeName.equals("*")||parser.nextToken.lexemeName.equals("/")){
-//                            	break;
-                                break rulesNeedToBeAdded;
-                            }else{
-                                currentCharacterAnalysis.add(compositionBase.FACTOR);
-                                parser.currentSyntax = compositionBase.FACTOR;
-                                break rulesNeedToBeAdded;
-                            }
-					case ERROR:
-						break;
-					case TYPE:
-						break;
-					default:
-						break;
-                    }
-                }
-            }
+            addRules(parser, currentCharacterAnalysis);
         }
         return tokenRules;
+    }
+    
+    public void addRules(currentParsing parser, List<compositionBase> currentCharacterAnalysis) {
+    	while (true) {
+            if(parser.currentToken.lexemeName.equals(";")){
+                parser.currentSyntax = compositionBase.EMPTY;
+                currentCharacterAnalysis.add(compositionBase.EMPTY);
+                break;
+            }
+            if (parser.currentToken.tokenName == Lexer.State.OPERATOR && parser.currentToken.lexemeName.equals("=")) {
+                parser.currentSyntax = compositionBase.EXPRESSION;
+                break;
+            }
+            switch (parser.currentSyntax) {
+                case STATEMENT:
+                    if (parser.currentToken.tokenName == Lexer.State.IDENTIFIER) {
+                        currentCharacterAnalysis.add(compositionBase.ASSIGNMENT);
+                        parser.currentSyntax = compositionBase.ASSIGNMENT;
+                    } else if (parser.currentToken.tokenName == Lexer.State.KEYWORD) {
+                        currentCharacterAnalysis.add(compositionBase.DECLARATIVE);
+                        parser.currentSyntax = compositionBase.DECLARATIVE;
+                    }
+                    break;
+                case ASSIGNMENT:
+                case NUMBER:
+                case IDENTIFIER:
+                case DECLARATIVE:
+                case FACTOR:
+                case EXPRESSION:
+                    if(parser.nextToken.lexemeName.equals("+") || parser.nextToken.lexemeName.equals("-")){
+                        currentCharacterAnalysis.add(compositionBase.TERM);
+                        parser.currentSyntax = compositionBase.TERM;
+                    }else{
+                        currentCharacterAnalysis.add(compositionBase.TERM);
+                        parser.currentSyntax = compositionBase.TERM;
+                    }
+                case TERM:
+                    if(parser.nextToken.lexemeName.equals("*") || parser.nextToken.lexemeName.equals("/")){
+                        return;
+                    }else{
+                        currentCharacterAnalysis.add(compositionBase.FACTOR);
+                        parser.currentSyntax = compositionBase.FACTOR;
+                        return;
+                    }
+			case ERROR:
+				break;
+			case TYPE:
+				break;
+			default:
+				break;
+            }
+        }
     }
     
     public void printLine(Line line){
