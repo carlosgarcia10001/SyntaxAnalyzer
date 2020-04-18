@@ -20,14 +20,7 @@ import java.util.List;
 
 public class Syntax {
     
-    public Syntax(List<Token> lexerTokens){
-        try {
-        	List<Line> lines = createLines(lexerTokens);        	
-        	printAllLines(lines); 
-        } catch(Exception e){
-        	System.out.println(e.getMessage());
-        	return;
-        }
+    public Syntax(){
     }
     
     public enum compositionBase {
