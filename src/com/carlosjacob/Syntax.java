@@ -1,8 +1,6 @@
 package com.carlosjacob;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /*
 <Statement> -> <Declarative>
@@ -21,34 +19,24 @@ import java.util.Map;
 */
 
 public class Syntax {
-    private Lexer lex;
-    private List<Lexer.Token> tokens;
-    private List<Line> lines;
-    public Syntax(String fileName){
-        lex = new Lexer();
-        lex.feedMe(fileName);
-        tokens = lex.createTokenList(fileName);
-        try {
-        	lines = createLines();        	
-        } catch(Exception e){
-        	System.out.println(e.getMessage());
-        	return;
-        }
-        printAllLines();   
+    
+    public Syntax(){
     }
     
     public enum compositionBase {
         STATEMENT(0, "<Statement> -> <Declarative> | <Assignment>"),
         DECLARATIVE(1, "<Type> <ID> <MoreIds>; | <empty>"),
         TYPE(2, "int, float, bool"),
-        IDENTIFIER(3),
+        IDENTIFIER(3, "<ID> - > id"),
         ASSIGNMENT(4, "<Assignment> -> <Identifier> = <Expression>;"),
         EXPRESSION(5, "<Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>"),
         TERM(6, "<Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>"),
         FACTOR(7, "<Factor> -> ( <Expression> ) | <ID> | <num>"),
         NUMBER(8),
         EMPTY(9,"<Empty> -> Epsilon"),
-        PRIMARY(10,"<ID>,<num>"),
+        PRIMARY(10,"<Primary> -> <ID>,<num>"),
+        TERMPRIME(11, "<TermPrime> -> * <Factor> <TermPrime> | / <Factor> <TermPrime> | <Empty>"),
+        EXPRESSIONPRIME(12, "<ExpressionPrime> -> + <Term> <ExpressionPrime> | - <Term> <ExpressionPrime> | <Empty>"),
         ERROR(-1);
 
         private int specificComposition;
@@ -74,16 +62,17 @@ public class Syntax {
 
     public enum fullComposition {
         STATEMENT(0, "<Statement> -> <Declarative> | <Assignment>"),
-        DECLARATIVE(1, "<Declarative> -> <Type> <id>"),
-        TYPE(2),
-        IDENTIFIER(3),
-        ASSIGNMENT(4, "<Assign> -> <Identifier> = <Expression>;"),
+        DECLARATIVE(1, "<Type> <ID> <MoreIds>; | <empty>"),
+        TYPE(2, "int, float, bool"),
+        IDENTIFIER(3, "<ID> - > id"),
+        ASSIGNMENT(4, "<Assignment> -> <Identifier> = <Expression>;"),
         EXPRESSION(5, "<Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>"),
         TERM(6, "<Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>"),
-        FACTOR(7, "<Factor> -> ( <Expression> ) | <Primary>"),
+        FACTOR(7, "<Factor> -> ( <Expression> ) | <ID> | <num>"),
         NUMBER(8),
         EMPTY(9,"<Empty> -> Epsilon"),
-        PRIMARY(10,"<Primary>-><ID>,<num>");
+        PRIMARY(10,"<Primary> -> <ID>, <num>"),
+        ERROR(-1);
 
         private int specificCompositionIndex;
         private String syntaxString;
@@ -95,6 +84,7 @@ public class Syntax {
         public String getString(){
             return syntaxString;
         }
+        
         fullComposition(int index, String syntaxString){
             this.specificCompositionIndex = index;
             this.syntaxString = syntaxString;
@@ -141,27 +131,27 @@ public class Syntax {
     }
 
     public class Line{
-        private List<Lexer.Token> tokens;
+        public List<Token> tokens;
         public Line(){
             tokens = new ArrayList<>();
         }
     }
 
-    public List<Line> createLines() throws Exception{
+    public List<Line> createLines(List<Token> tokensFromLexer) throws Exception{
         List<Line> lines = new ArrayList<>();
         Line line = new Line();
-        Lexer.Token currToken;
+        Token currToken;
         
         List<String> errors = new ArrayList<>();
 
-        for(int i = 0; i < tokens.size(); i++){
-        	currToken = tokens.get(i);
+        for(int i = 0; i < tokensFromLexer.size(); i++){
+        	currToken = tokensFromLexer.get(i);
             line.tokens.add(currToken);
             if(currToken.lexemeName.equals(";")){
                 lines.add(line);
                 line = new Line();
                 continue;
-            } else if(i == tokens.size()-1) {
+            } else if(i == tokensFromLexer.size()-1) {
             	//They didn't at least have the end of the token with a semicolon
             	errors.add("Expected a semicolon after token " + currToken.lexemeName);
             }
@@ -177,10 +167,10 @@ public class Syntax {
 
     public class currentParsing{
         public compositionBase currentSyntax;
-        public Lexer.Token currentToken;
-        public Lexer.Token nextToken;
+        public Token currentToken;
+        public Token nextToken;
 
-        public currentParsing(compositionBase currentSyntax, Lexer.Token currentToken, Lexer.Token nextToken){
+        public currentParsing(compositionBase currentSyntax, Token currentToken, Token nextToken){
             this.currentSyntax = currentSyntax;
             this.currentToken = currentToken;
             this.nextToken = nextToken;
@@ -221,67 +211,71 @@ public class Syntax {
             	parser.nextToken = parser.currentToken;
             }
             
-            rulesNeedToBeAdded:
-            {
-                while (true) {
-                    if(parser.currentToken.lexemeName.equals(";")){
-                        parser.currentSyntax = compositionBase.EMPTY;
-                        currentCharacterAnalysis.add(compositionBase.EMPTY);
-                        break;
-                    }
-                    if (parser.currentToken.tokenName == Lexer.State.OPERATOR && parser.currentToken.lexemeName.equals("=")) {
-                        parser.currentSyntax = compositionBase.EXPRESSION;
-                        break;
-                    }
-                    switch (parser.currentSyntax) {
-                        case STATEMENT:
-                            if (parser.currentToken.tokenName == Lexer.State.IDENTIFIER) {
-                                currentCharacterAnalysis.add(compositionBase.ASSIGNMENT);
-                                parser.currentSyntax = compositionBase.ASSIGNMENT;
-                            } else if (parser.currentToken.tokenName == Lexer.State.KEYWORD) {
-                                currentCharacterAnalysis.add(compositionBase.DECLARATIVE);
-                                parser.currentSyntax = compositionBase.DECLARATIVE;
-                            }
-                            break;
-                        case ASSIGNMENT:
-                        case NUMBER:
-                        case IDENTIFIER:
-                        case DECLARATIVE:
-                        case FACTOR:
-                              break rulesNeedToBeAdded;
-                        case EXPRESSION:
-                            if(parser.nextToken.lexemeName.equals("+")||parser.nextToken.lexemeName.equals("-")){
-                                currentCharacterAnalysis.add(compositionBase.TERM);
-                                parser.currentSyntax = compositionBase.TERM;
-                                  break rulesNeedToBeAdded;
-                            }else{
-                                currentCharacterAnalysis.add(compositionBase.TERM);
-                                parser.currentSyntax = compositionBase.TERM;
-                            }
-                        case TERM:
-                            if(parser.nextToken.lexemeName.equals("*")||parser.nextToken.lexemeName.equals("/")){
-                                break rulesNeedToBeAdded;
-                            }else{
-                                currentCharacterAnalysis.add(compositionBase.FACTOR);
-                                parser.currentSyntax = compositionBase.FACTOR;
-                                break rulesNeedToBeAdded;
-                            }
-                    }
-                }
-            }
+            addRules(parser, currentCharacterAnalysis);
         }
         return tokenRules;
     }
     
+    public void addRules(currentParsing parser, List<compositionBase> currentCharacterAnalysis) {
+    	while (true) {
+            if(parser.currentToken.lexemeName.equals(";")){
+                parser.currentSyntax = compositionBase.EMPTY;
+                currentCharacterAnalysis.add(compositionBase.EMPTY);
+                break;
+            }
+            if (parser.currentToken.tokenName == Lexer.State.OPERATOR && parser.currentToken.lexemeName.equals("=")) {
+                parser.currentSyntax = compositionBase.EXPRESSION;
+                break;
+            }
+            switch (parser.currentSyntax) {
+                case STATEMENT:
+                    if (parser.currentToken.tokenName == Lexer.State.IDENTIFIER) {
+                        currentCharacterAnalysis.add(compositionBase.ASSIGNMENT);
+                        parser.currentSyntax = compositionBase.ASSIGNMENT;
+                    } else if (parser.currentToken.tokenName == Lexer.State.KEYWORD) {
+                        currentCharacterAnalysis.add(compositionBase.DECLARATIVE);
+                        parser.currentSyntax = compositionBase.DECLARATIVE;
+                    }
+                    break;
+	            case ASSIGNMENT:
+	            	return;
+	            case NUMBER:
+	            case IDENTIFIER:
+	            case DECLARATIVE:
+	            case EXPRESSION:
+	                currentCharacterAnalysis.add(compositionBase.EXPRESSION);
+	                parser.currentSyntax = compositionBase.TERM;
+	            case TERM:
+	                currentCharacterAnalysis.add(compositionBase.TERM);
+	                parser.currentSyntax = compositionBase.FACTOR;
+	            case FACTOR:
+	            	currentCharacterAnalysis.add(compositionBase.FACTOR);
+	            	parser.currentSyntax = compositionBase.PRIMARY;
+	            case PRIMARY:
+	            	currentCharacterAnalysis.add(compositionBase.PRIMARY);
+	            	parser.currentSyntax = compositionBase.EMPTY;
+	            	return;
+				case ERROR:
+					break;
+				case TYPE:
+					break;
+				case EMPTY:
+					break;
+				default:
+					break;
+            }
+        }
+    }
+    
     public void printLine(Line line){
-        for(Lexer.Token token : line.tokens){
+        for(Token token : line.tokens){
             System.out.print(token.lexemeName + " ");
         }
         System.out.println();
     }
     
-    public void printAllLines(){
-    	Lexer.Token currToken = null;
+    public void printAllLines(List<Line> lines){
+    	Token currToken = null;
         for(Line line : lines){
             List<List<compositionBase>> list = parseLine(line);
             for(int i = 0; i < line.tokens.size(); i++){
