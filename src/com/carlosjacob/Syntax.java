@@ -25,7 +25,7 @@ public class Syntax {
 
     public enum compositionBase {
         STATEMENT(0, "<Statement> -> <Declarative> | <Assignment>"),
-        DECLARATIVE(1, "<Type> <ID> <MoreIds>; | <empty>"),
+        DECLARATIVE(1, "<Declarative> -> <Type> <ID>"),
         TYPE(2, "int, float, bool"),
         IDENTIFIER(3, "<ID> - > id"),
         ASSIGNMENT(4, "<Assignment> -> <Identifier> = <Expression>;"),
@@ -63,7 +63,7 @@ public class Syntax {
 
     public enum fullComposition {
         STATEMENT(0, "<Statement> -> <Declarative> | <Assignment>"),
-        DECLARATIVE(1, "<Type> <ID> <MoreIds>; | <empty>"),
+        DECLARATIVE(1, "<Declarative> -> <Type> <ID> <MoreIds>; | <empty>"),
         TYPE(2, "int, float, bool"),
         IDENTIFIER(3, "<ID> - > id"),
         ASSIGNMENT(4, "<Assignment> -> <Identifier> = <Expression>;"),
@@ -229,6 +229,12 @@ public class Syntax {
                 parser.currentSyntax = compositionBase.EXPRESSION;
                 break;
             }
+            if(parser.currentToken.tokenName == Lexer.State.IDENTIFIER && parser.currentSyntax==compositionBase.TERMPRIME){
+                parser.currentSyntax = compositionBase.FACTOR;
+            }
+            if(parser.currentToken.tokenName == Lexer.State.IDENTIFIER && parser.currentSyntax==compositionBase.EXPRESSIONPRIME){
+                parser.currentSyntax = compositionBase.TERM;
+            }
             switch (parser.currentSyntax) {
                 case STATEMENT:
                     if (parser.currentToken.tokenName == Lexer.State.IDENTIFIER) {
@@ -236,7 +242,8 @@ public class Syntax {
                         parser.currentSyntax = compositionBase.ASSIGNMENT;
                     } else if (parser.currentToken.tokenName == Lexer.State.KEYWORD) {
                         currentCharacterAnalysis.add(compositionBase.DECLARATIVE);
-                        parser.currentSyntax = compositionBase.DECLARATIVE;
+                        parser.currentSyntax = compositionBase.PRIMARY;
+                        return;
                     }
                     break;
                 case ASSIGNMENT:
