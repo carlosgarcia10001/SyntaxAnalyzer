@@ -27,14 +27,14 @@ public class Syntax {
         STATEMENT(0, "<Statement> -> <Declarative> | <Assignment>"),
         DECLARATIVE(1, "<Type> <ID> <MoreIds>; | <empty>"),
         TYPE(2, "int, float, bool"),
-        IDENTIFIER(3),
+        IDENTIFIER(3, "<ID> - > id"),
         ASSIGNMENT(4, "<Assignment> -> <Identifier> = <Expression>;"),
         EXPRESSION(5, "<Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>"),
         TERM(6, "<Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>"),
         FACTOR(7, "<Factor> -> ( <Expression> ) | <ID> | <num>"),
         NUMBER(8),
         EMPTY(9,"<Empty> -> Epsilon"),
-        PRIMARY(10,"<ID>,<num>"),
+        PRIMARY(10,"<Primary> -> <ID>,<num>"),
         ERROR(-1);
 
         private int specificComposition;
@@ -60,16 +60,17 @@ public class Syntax {
 
     public enum fullComposition {
         STATEMENT(0, "<Statement> -> <Declarative> | <Assignment>"),
-        DECLARATIVE(1, "<Declarative> -> <Type> <id>"),
-        TYPE(2),
-        IDENTIFIER(3),
-        ASSIGNMENT(4, "<Assign> -> <Identifier> = <Expression>;"),
+        DECLARATIVE(1, "<Type> <ID> <MoreIds>; | <empty>"),
+        TYPE(2, "int, float, bool"),
+        IDENTIFIER(3, "<ID> - > id"),
+        ASSIGNMENT(4, "<Assignment> -> <Identifier> = <Expression>;"),
         EXPRESSION(5, "<Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>"),
         TERM(6, "<Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>"),
-        FACTOR(7, "<Factor> -> ( <Expression> ) | <Primary>"),
+        FACTOR(7, "<Factor> -> ( <Expression> ) | <ID> | <num>"),
         NUMBER(8),
         EMPTY(9,"<Empty> -> Epsilon"),
-        PRIMARY(10,"<Primary>-><ID>,<num>");
+        PRIMARY(10,"<Primary> -> <ID>, <num>"),
+        ERROR(-1);
 
         private int specificCompositionIndex;
         private String syntaxString;
@@ -81,6 +82,7 @@ public class Syntax {
         public String getString(){
             return syntaxString;
         }
+        
         fullComposition(int index, String syntaxString){
             this.specificCompositionIndex = index;
             this.syntaxString = syntaxString;
@@ -238,6 +240,8 @@ public class Syntax {
                 case IDENTIFIER:
                 case DECLARATIVE:
                 case FACTOR:
+                	currentCharacterAnalysis.add(compositionBase.PRIMARY);
+                	parser.currentSyntax = compositionBase.PRIMARY;
                 case EXPRESSION:
                     if(parser.nextToken.lexemeName.equals("+") || parser.nextToken.lexemeName.equals("-")){
                         currentCharacterAnalysis.add(compositionBase.TERM);
