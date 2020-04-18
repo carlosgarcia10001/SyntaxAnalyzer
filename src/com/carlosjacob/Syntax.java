@@ -61,77 +61,6 @@ public class Syntax {
         }
     }
 
-    public enum fullComposition {
-        STATEMENT(0, "<Statement> -> <Declarative> | <Assignment>"),
-        DECLARATIVE(1, "<Declarative> -> <Type> <ID> <MoreIds>; | <empty>"),
-        TYPE(2, "int, float, bool"),
-        IDENTIFIER(3, "<ID> - > id"),
-        ASSIGNMENT(4, "<Assignment> -> <Identifier> = <Expression>;"),
-        EXPRESSION(5, "<Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>"),
-        TERM(6, "<Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>"),
-        FACTOR(7, "<Factor> -> ( <Expression> ) | <ID> | <num>"),
-        NUMBER(8),
-        EMPTY(9,"<Empty> -> Epsilon"),
-        EMPTYPRIME(10,"<Empty> -> Epsilon"),
-        PRIMARY(10,"<Primary> -> <ID>, <num>"),
-        ERROR(-1);
-
-        private int specificCompositionIndex;
-        private String syntaxString;
-        private compositionBase[][][] fullCompositions = {
-                {{compositionBase.DECLARATIVE}, {compositionBase.ASSIGNMENT}},
-                {{compositionBase.TYPE, compositionBase.IDENTIFIER}}
-        };
-
-        public String getString(){
-            return syntaxString;
-        }
-
-        fullComposition(int index, String syntaxString){
-            this.specificCompositionIndex = index;
-            this.syntaxString = syntaxString;
-
-        }
-        fullComposition(int index){
-            this.specificCompositionIndex = index;
-        }
-
-        public compositionBase[][] getComposition(){
-            if(this.getCompositionIndex() == -1) {
-                return null;
-            }
-            return this.fullCompositions[this.getCompositionIndex()];
-        }
-
-        public int getCompositionIndex(){
-            return specificCompositionIndex;
-        }
-
-        public static compositionBase returnEnumFromId(int index){
-            switch(index){
-                case 0:
-                    return compositionBase.STATEMENT;
-                case 1:
-                    return compositionBase.DECLARATIVE;
-                case 2:
-                    return compositionBase.TYPE;
-                case 3:
-                    return compositionBase.IDENTIFIER;
-                case 4:
-                    return compositionBase.ASSIGNMENT;
-                case 5:
-                    return compositionBase.EXPRESSION;
-                case 6:
-                    return compositionBase.TERM;
-                case 7:
-                    return compositionBase.FACTOR;
-                case 8:
-                    return compositionBase.NUMBER;
-            }
-            return compositionBase.ERROR;
-        }
-    }
-
     public class Line{
         public List<Token> tokens;
         public Line(){
@@ -144,8 +73,6 @@ public class Syntax {
         Line line = new Line();
         Token currToken;
 
-        List<String> errors = new ArrayList<>();
-
         for(int i = 0; i < tokensFromLexer.size(); i++){
             currToken = tokensFromLexer.get(i);
             line.tokens.add(currToken);
@@ -153,16 +80,7 @@ public class Syntax {
                 lines.add(line);
                 line = new Line();
                 continue;
-            } else if(i == tokensFromLexer.size()-1) {
-                //They didn't at least have the end of the token with a semicolon
-                errors.add("Expected a semicolon after token " + currToken.lexemeName);
             }
-        }
-        if(errors.size() != 0) {
-            for(String error : errors) {
-                System.out.println(error);
-            }
-            throw new Exception("Syntax Error");
         }
         return lines;
     }
