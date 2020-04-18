@@ -35,6 +35,8 @@ public class Syntax {
         NUMBER(8),
         EMPTY(9,"<Empty> -> Epsilon"),
         PRIMARY(10,"<Primary> -> <ID>,<num>"),
+        TERMPRIME(11, "<TermPrime> -> * <Factor> <TermPrime> | / <Factor> <TermPrime> | <Empty>"),
+        EXPRESSIONPRIME(12, "<ExpressionPrime> -> + <Term> <ExpressionPrime> | - <Term> <ExpressionPrime> | <Empty>"),
         ERROR(-1);
 
         private int specificComposition;
@@ -246,15 +248,18 @@ public class Syntax {
 	            case TERM:
 	                currentCharacterAnalysis.add(compositionBase.TERM);
 	                parser.currentSyntax = compositionBase.FACTOR;
-	                return;
 	            case FACTOR:
 	            	currentCharacterAnalysis.add(compositionBase.FACTOR);
 	            	parser.currentSyntax = compositionBase.PRIMARY;
 	            case PRIMARY:
+	            	currentCharacterAnalysis.add(compositionBase.PRIMARY);
+	            	parser.currentSyntax = compositionBase.EMPTY;
 	            	return;
 				case ERROR:
 					break;
 				case TYPE:
+					break;
+				case EMPTY:
 					break;
 				default:
 					break;
