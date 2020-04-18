@@ -235,38 +235,29 @@ public class Syntax {
                         parser.currentSyntax = compositionBase.DECLARATIVE;
                     }
                     break;
-                case ASSIGNMENT:
-                case NUMBER:
-                case IDENTIFIER:
-                case DECLARATIVE:
-                case FACTOR:
-                	currentCharacterAnalysis.add(compositionBase.PRIMARY);
-                	parser.currentSyntax = compositionBase.PRIMARY;
-                	return;
-                case EXPRESSION:
-                    if(parser.nextToken.lexemeName.equals("+") || parser.nextToken.lexemeName.equals("-")){
-                        currentCharacterAnalysis.add(compositionBase.TERM);
-                        parser.currentSyntax = compositionBase.TERM;
-                    }else{
-                        currentCharacterAnalysis.add(compositionBase.TERM);
-                        parser.currentSyntax = compositionBase.TERM;
-                    }
-                case TERM:
-                    if(parser.nextToken.lexemeName.equals("*") || parser.nextToken.lexemeName.equals("/")){
-                        return;
-                    }else{
-                        currentCharacterAnalysis.add(compositionBase.FACTOR);
-                        parser.currentSyntax = compositionBase.FACTOR;
-                        return;
-                    }
-			case ERROR:
-				break;
-			case TYPE:
-				break;
-			case PRIMARY:
-				return;
-			default:
-				break;
+	            case ASSIGNMENT:
+	            	return;
+	            case NUMBER:
+	            case IDENTIFIER:
+	            case DECLARATIVE:
+	            case EXPRESSION:
+	                currentCharacterAnalysis.add(compositionBase.EXPRESSION);
+	                parser.currentSyntax = compositionBase.TERM;
+	            case TERM:
+	                currentCharacterAnalysis.add(compositionBase.TERM);
+	                parser.currentSyntax = compositionBase.FACTOR;
+	                return;
+	            case FACTOR:
+	            	currentCharacterAnalysis.add(compositionBase.FACTOR);
+	            	parser.currentSyntax = compositionBase.PRIMARY;
+	            case PRIMARY:
+	            	return;
+				case ERROR:
+					break;
+				case TYPE:
+					break;
+				default:
+					break;
             }
         }
     }
