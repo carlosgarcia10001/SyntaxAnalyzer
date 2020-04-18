@@ -248,19 +248,18 @@ public class Syntax {
                         case IDENTIFIER:
                         case DECLARATIVE:
                         case FACTOR:
-//                            break rulesNeedToBeAdded;
+                              break rulesNeedToBeAdded;
                         case EXPRESSION:
                             if(parser.nextToken.lexemeName.equals("+")||parser.nextToken.lexemeName.equals("-")){
                                 currentCharacterAnalysis.add(compositionBase.TERM);
                                 parser.currentSyntax = compositionBase.TERM;
-//                                break rulesNeedToBeAdded;
+                                  break rulesNeedToBeAdded;
                             }else{
                                 currentCharacterAnalysis.add(compositionBase.TERM);
                                 parser.currentSyntax = compositionBase.TERM;
                             }
                         case TERM:
                             if(parser.nextToken.lexemeName.equals("*")||parser.nextToken.lexemeName.equals("/")){
-//                            	break;
                                 break rulesNeedToBeAdded;
                             }else{
                                 currentCharacterAnalysis.add(compositionBase.FACTOR);
