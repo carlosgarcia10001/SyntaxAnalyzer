@@ -242,6 +242,7 @@ public class Syntax {
                 case FACTOR:
                 	currentCharacterAnalysis.add(compositionBase.PRIMARY);
                 	parser.currentSyntax = compositionBase.PRIMARY;
+                	return;
                 case EXPRESSION:
                     if(parser.nextToken.lexemeName.equals("+") || parser.nextToken.lexemeName.equals("-")){
                         currentCharacterAnalysis.add(compositionBase.TERM);
@@ -262,6 +263,8 @@ public class Syntax {
 				break;
 			case TYPE:
 				break;
+			case PRIMARY:
+				return;
 			default:
 				break;
             }
