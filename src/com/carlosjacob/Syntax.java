@@ -19,10 +19,10 @@ import java.util.List;
 */
 
 public class Syntax {
-    
+
     public Syntax(){
     }
-    
+
     public enum compositionBase {
         STATEMENT(0, "<Statement> -> <Declarative> | <Assignment>"),
         DECLARATIVE(1, "<Type> <ID> <MoreIds>; | <empty>"),
@@ -35,18 +35,19 @@ public class Syntax {
         NUMBER(8),
         EMPTY(9,"<Empty> -> Epsilon"),
         PRIMARY(10,"<Primary> -> <ID>,<num>"),
-        TERMPRIME(11, "<TermPrime> -> * <Factor> <TermPrime> | / <Factor> <TermPrime> | <Empty>"),
-        EXPRESSIONPRIME(12, "<ExpressionPrime> -> + <Term> <ExpressionPrime> | - <Term> <ExpressionPrime> | <Empty>"),
+        TERMPRIME(11,"<TermPrime> -> * <Factor> <TermPrime> | / <Factor> <TermPrime> | <Empty>"),
+        EXPRESSIONPRIME(12,"<ExpressionPrime> -> + <Term> <ExpressionPrime> | - <Term> <ExpressionPrime> | <Empty>"),
+        EMPTYPRIME(13,"<Empty> -> Epsilon"),
         ERROR(-1);
 
         private int specificComposition;
         private String syntaxString;
-        
+
         compositionBase(int composition, String syntaxString){
             this.syntaxString = syntaxString;
             this.specificComposition = composition;
         }
-        
+
         compositionBase(int composition){
             this.specificComposition = composition;
         }
@@ -71,6 +72,7 @@ public class Syntax {
         FACTOR(7, "<Factor> -> ( <Expression> ) | <ID> | <num>"),
         NUMBER(8),
         EMPTY(9,"<Empty> -> Epsilon"),
+        EMPTYPRIME(10,"<Empty> -> Epsilon"),
         PRIMARY(10,"<Primary> -> <ID>, <num>"),
         ERROR(-1);
 
@@ -80,11 +82,11 @@ public class Syntax {
                 {{compositionBase.DECLARATIVE}, {compositionBase.ASSIGNMENT}},
                 {{compositionBase.TYPE, compositionBase.IDENTIFIER}}
         };
-        
+
         public String getString(){
             return syntaxString;
         }
-        
+
         fullComposition(int index, String syntaxString){
             this.specificCompositionIndex = index;
             this.syntaxString = syntaxString;
@@ -141,26 +143,26 @@ public class Syntax {
         List<Line> lines = new ArrayList<>();
         Line line = new Line();
         Token currToken;
-        
+
         List<String> errors = new ArrayList<>();
 
         for(int i = 0; i < tokensFromLexer.size(); i++){
-        	currToken = tokensFromLexer.get(i);
+            currToken = tokensFromLexer.get(i);
             line.tokens.add(currToken);
             if(currToken.lexemeName.equals(";")){
                 lines.add(line);
                 line = new Line();
                 continue;
             } else if(i == tokensFromLexer.size()-1) {
-            	//They didn't at least have the end of the token with a semicolon
-            	errors.add("Expected a semicolon after token " + currToken.lexemeName);
+                //They didn't at least have the end of the token with a semicolon
+                errors.add("Expected a semicolon after token " + currToken.lexemeName);
             }
         }
         if(errors.size() != 0) {
-        	for(String error : errors) {
-        		System.out.println(error);
-        	}
-        	throw new Exception("Syntax Error");
+            for(String error : errors) {
+                System.out.println(error);
+            }
+            throw new Exception("Syntax Error");
         }
         return lines;
     }
@@ -176,48 +178,48 @@ public class Syntax {
             this.nextToken = nextToken;
         }
     }
-    
+
     // Parses the input line and returns a list of the proper grammatical rules for that token
     public List<List<compositionBase>> parseLine(Line line){
-    	
-    	//A 2D array containing the rules for each token in the line
+
+        //A 2D array containing the rules for each token in the line
         List<List<compositionBase>> tokenRules = new ArrayList<>();
-        
+
         currentParsing parser = new currentParsing(compositionBase.STATEMENT, line.tokens.get(0), line.tokens.get(1));
         parser.currentSyntax = compositionBase.STATEMENT;
-        
+
         for(int i = 0; i < line.tokens.size(); i++){
             tokenRules.add(new ArrayList<>());
         }
-        
+
         //"Blimith Today at 11:16 AM
         //Every line is a statement of some sort"
         tokenRules.get(0).add(compositionBase.STATEMENT);
-        
+
         for(int i = 0; i < line.tokens.size(); i++){
             List<compositionBase> currentCharacterAnalysis = tokenRules.get(i);
             parser.currentToken = line.tokens.get(i);
-            
+
             //Ignore displaying comments
             if(parser.currentToken.tokenName == Lexer.State.IN_COMMENT) {
-            	continue;
+                continue;
             }
-            
+
             //Check to make sure we can get the next token
             //If we can, get it, else the next is the current
             if(i != line.tokens.size()-1) {
-            	parser.nextToken = line.tokens.get(i+1);            	
+                parser.nextToken = line.tokens.get(i+1);
             } else {
-            	parser.nextToken = parser.currentToken;
+                parser.nextToken = parser.currentToken;
             }
-            
+
             addRules(parser, currentCharacterAnalysis);
         }
         return tokenRules;
     }
-    
+
     public void addRules(currentParsing parser, List<compositionBase> currentCharacterAnalysis) {
-    	while (true) {
+        while (true) {
             if(parser.currentToken.lexemeName.equals(";")){
                 parser.currentSyntax = compositionBase.EMPTY;
                 currentCharacterAnalysis.add(compositionBase.EMPTY);
@@ -237,59 +239,79 @@ public class Syntax {
                         parser.currentSyntax = compositionBase.DECLARATIVE;
                     }
                     break;
-	            case ASSIGNMENT:
-	            	return;
-	            case NUMBER:
-	            case IDENTIFIER:
-	            case DECLARATIVE:
-	            case EXPRESSION:
-	                currentCharacterAnalysis.add(compositionBase.EXPRESSION);
-	                parser.currentSyntax = compositionBase.TERM;
-	            case TERM:
-	                currentCharacterAnalysis.add(compositionBase.TERM);
-	                parser.currentSyntax = compositionBase.FACTOR;
-	            case FACTOR:
-	            	currentCharacterAnalysis.add(compositionBase.FACTOR);
-	            	parser.currentSyntax = compositionBase.PRIMARY;
-	            case PRIMARY:
-	            	currentCharacterAnalysis.add(compositionBase.PRIMARY);
-	            	parser.currentSyntax = compositionBase.EMPTY;
-	            	return;
-				case ERROR:
-					break;
-				case TYPE:
-					break;
-				case EMPTY:
-					break;
-				default:
-					break;
+                case ASSIGNMENT:
+                    return;
+                case NUMBER:
+                case IDENTIFIER:
+                case DECLARATIVE:
+                case EXPRESSION:
+                    currentCharacterAnalysis.add(compositionBase.EXPRESSION);
+                    parser.currentSyntax = compositionBase.TERM;
+                case TERM:
+                    currentCharacterAnalysis.add(compositionBase.TERM);
+                    parser.currentSyntax = compositionBase.FACTOR;
+                    break;
+                case FACTOR:
+                    currentCharacterAnalysis.add(compositionBase.FACTOR);
+                    parser.currentSyntax = compositionBase.PRIMARY;
+                case PRIMARY:
+                    currentCharacterAnalysis.add(compositionBase.PRIMARY);
+                    parser.currentSyntax = compositionBase.EMPTY;
+                    return;
+                case ERROR:
+                    break;
+                case TYPE:
+                    break;
+                case EMPTY:
+                    currentCharacterAnalysis.add(compositionBase.EMPTY);
+                    parser.currentSyntax = compositionBase.TERMPRIME;
+                    break;
+                case TERMPRIME:
+                    currentCharacterAnalysis.add(compositionBase.TERMPRIME);
+                    if(parser.currentToken.lexemeName.equals("*") || parser.currentToken.lexemeName.equals("/")){
+                        return;
+                    }
+                    parser.currentSyntax = compositionBase.EMPTYPRIME;
+                    break;
+                case EMPTYPRIME:
+                    currentCharacterAnalysis.add(compositionBase.EMPTYPRIME);
+                    parser.currentSyntax = compositionBase.EXPRESSIONPRIME;
+                    break;
+                case EXPRESSIONPRIME:
+                    currentCharacterAnalysis.add(compositionBase.EXPRESSIONPRIME);
+                    if(parser.currentToken.lexemeName.equals("+") || parser.currentToken.lexemeName.equals("-")){
+                        return;
+                    }
+                    currentCharacterAnalysis.add(compositionBase.EMPTY);
+                default:
+                    return;
             }
         }
     }
-    
+
     public void printLine(Line line){
         for(Token token : line.tokens){
             System.out.print(token.lexemeName + " ");
         }
         System.out.println();
     }
-    
+
     public void printAllLines(List<Line> lines){
-    	Token currToken = null;
+        Token currToken = null;
         for(Line line : lines){
             List<List<compositionBase>> list = parseLine(line);
             for(int i = 0; i < line.tokens.size(); i++){
-            	currToken = line.tokens.get(i);
+                currToken = line.tokens.get(i);
                 System.out.print("Token: " + currToken.tokenName);
                 System.out.println("\t\tLexeme: " + currToken.lexemeName);
-            	if(currToken.tokenName != Lexer.State.IN_COMMENT && list.get(i).size() != 0) {
+                if(currToken.tokenName != Lexer.State.IN_COMMENT && list.get(i).size() != 0) {
 
-            		
-            		//Print all the syntax rules for this token type
-            		for(int j = 0; j < list.get(i).size(); j++){
-            			System.out.println(list.get(i).get(j).getSyntaxString());
-            		}            		
-            	}
+
+                    //Print all the syntax rules for this token type
+                    for(int j = 0; j < list.get(i).size(); j++){
+                        System.out.println(list.get(i).get(j).getSyntaxString());
+                    }
+                }
             }
         }
     }
