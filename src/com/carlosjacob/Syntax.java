@@ -1,25 +1,11 @@
 package com.carlosjacob;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/*
-<Statement> -> <Declarative>
-<Declarative> -> <Type> <id>
-
-<Statement> -> <Assign>
-<Assign> -> <ID> = <Expression>;
-
-<Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>
-
-<Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>
-
-<Factor> -> ( <Expression> ) | <ID> | <num>
-
-<ID> -> id
-*/
-
 public class Syntax {
-
     public Syntax(){
     }
 
@@ -50,10 +36,6 @@ public class Syntax {
 
         compositionBase(int composition){
             this.specificComposition = composition;
-        }
-
-        public int getComposition(){
-            return specificComposition;
         }
 
         public String getSyntaxString(){
@@ -110,8 +92,6 @@ public class Syntax {
             tokenRules.add(new ArrayList<>());
         }
 
-        //"Blimith Today at 11:16 AM
-        //Every line is a statement of some sort"
         tokenRules.get(0).add(compositionBase.STATEMENT);
 
         for(int i = 0; i < line.tokens.size(); i++){
@@ -214,30 +194,48 @@ public class Syntax {
         }
     }
 
-    public void printLine(Line line){
-        for(Token token : line.tokens){
-            System.out.print(token.lexemeName + " ");
-        }
-        System.out.println();
-    }
-
     public void printAllLines(List<Line> lines){
         Token currToken = null;
-        for(Line line : lines){
-            List<List<compositionBase>> list = parseLine(line);
-            for(int i = 0; i < line.tokens.size(); i++){
-                currToken = line.tokens.get(i);
-                System.out.print("Token: " + currToken.tokenName);
-                System.out.println("\t\tLexeme: " + currToken.lexemeName);
-                if(currToken.tokenName != Lexer.State.IN_COMMENT && list.get(i).size() != 0) {
+        try{
+            File syntaxOutput = new File("SyntaxOutput.txt");
+            if(syntaxOutput.createNewFile()){
+                System.out.println("File created");
+            }
+            else{
+                System.out.println("File already exists");
+            }
+            FileWriter writer = new FileWriter("SyntaxOutput.txt");
+            for(Line line : lines){
+                List<List<compositionBase>> list = parseLine(line);
+                for(int i = 0; i < line.tokens.size(); i++){
+                    currToken = line.tokens.get(i);
+                    int numSpaces = 15-currToken.tokenName.toString().length();
+                    String spaces = "";
 
-
-                    //Print all the syntax rules for this token type
-                    for(int j = 0; j < list.get(i).size(); j++){
-                        System.out.println(list.get(i).get(j).getSyntaxString());
+                    for(int j = 0; j < numSpaces; j++) {
+                        spaces += " ";
+                    }
+                    System.out.print("Token: " + currToken.tokenName);
+                    System.out.println("\t\tLexeme: " + currToken.lexemeName);
+                    if(i==0){
+                        writer.write("Token: " + currToken.tokenName);
+                    }
+                    else {
+                        writer.write("\nToken: " + currToken.tokenName);
+                    }
+                    writer.write(spaces + "\t\tLexeme: " + currToken.lexemeName);
+                    if(currToken.tokenName != Lexer.State.IN_COMMENT && list.get(i).size() != 0) {
+                        //Print all the syntax rules for this token type
+                        for(int j = 0; j < list.get(i).size(); j++){
+                            System.out.println(list.get(i).get(j).getSyntaxString());
+                            writer.write("\n"+list.get(i).get(j).getSyntaxString());
+                        }
                     }
                 }
             }
+            writer.close();
+        }catch(IOException e){
+            System.out.println("Error occured");
         }
     }
 }

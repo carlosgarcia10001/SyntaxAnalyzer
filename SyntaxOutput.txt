@@ -1,0 +1,20 @@
+Token: IDENTIFIER     		Lexeme: x
+<Statement> -> <Declarative> | <Assignment>
+<Assignment> -> <Identifier> = <Expression>;
+Token: OPERATOR       		Lexeme: =
+Token: IDENTIFIER     		Lexeme: a
+<Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>
+<Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>
+<Factor> -> ( <Expression> ) | <ID> | <num>
+<Primary> -> <ID>,<num>
+Token: OPERATOR       		Lexeme: +
+<Empty> -> Epsilon
+<TermPrime> -> * <Factor> <TermPrime> | / <Factor> <TermPrime> | <Empty>
+<Empty> -> Epsilon
+<ExpressionPrime> -> + <Term> <ExpressionPrime> | - <Term> <ExpressionPrime> | <Empty>
+Token: IDENTIFIER     		Lexeme: b
+<Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>
+<Factor> -> ( <Expression> ) | <ID> | <num>
+<Primary> -> <ID>,<num>
+Token: END_STATEMENT  		Lexeme: ;
+<Empty> -> Epsilon
