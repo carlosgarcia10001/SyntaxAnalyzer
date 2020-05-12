@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Syntax {
+	SymbolTable symTable = new SymbolTable();
+	
     public Syntax(){
     }
 
@@ -69,10 +71,12 @@ public class Syntax {
 
     public class currentParsing{
         public compositionBase currentSyntax;
+        public Token previousToken;
         public Token currentToken;
         public Token nextToken;
 
-        public currentParsing(compositionBase currentSyntax, Token currentToken, Token nextToken){
+        public currentParsing(compositionBase currentSyntax, Token previousToken, Token currentToken, Token nextToken){
+        	this.previousToken = previousToken;
             this.currentSyntax = currentSyntax;
             this.currentToken = currentToken;
             this.nextToken = nextToken;
@@ -80,12 +84,12 @@ public class Syntax {
     }
 
     // Parses the input line and returns a list of the proper grammatical rules for that token
-    public List<List<compositionBase>> parseLine(Line line){
+    public List<List<compositionBase>> parseLine(Line line) throws Exception{
 
         //A 2D array containing the rules for each token in the line
         List<List<compositionBase>> tokenRules = new ArrayList<>();
 
-        currentParsing parser = new currentParsing(compositionBase.STATEMENT, line.tokens.get(0), line.tokens.get(1));
+        currentParsing parser = new currentParsing(compositionBase.STATEMENT, null, line.tokens.get(0), line.tokens.get(1));
         parser.currentSyntax = compositionBase.STATEMENT;
 
         for(int i = 0; i < line.tokens.size(); i++){
@@ -97,10 +101,28 @@ public class Syntax {
         for(int i = 0; i < line.tokens.size(); i++){
             List<compositionBase> currentCharacterAnalysis = tokenRules.get(i);
             parser.currentToken = line.tokens.get(i);
+            if(i > 0){
+            	parser.previousToken = line.tokens.get(i-1);
+            } else {
+            	parser.previousToken = null;
+            }
 
             //Ignore displaying comments
             if(parser.currentToken.tokenName == Lexer.State.IN_COMMENT) {
                 continue;
+            }
+            
+            if(parser.currentToken.tokenName == Lexer.State.IDENTIFIER){
+            	String type = null;
+            	if(i > 0){
+            		type = line.tokens.get(i-1).lexemeName;
+            		Symbol symbol = new Symbol(parser.currentToken.lexemeName, type);
+            		symTable.insert_symbol(symbol);
+            	} else {
+            		if(symTable.find_symbol(parser.currentToken.lexemeName) == null){
+            			throw new Error("Undeclared variable");            			
+            		}
+            	}
             }
 
             //Check to make sure we can get the next token
@@ -124,6 +146,7 @@ public class Syntax {
                 break;
             }
             if (parser.currentToken.tokenName == Lexer.State.OPERATOR && parser.currentToken.lexemeName.equals("=")) {
+            	symTable.insert_value(parser.previousToken.lexemeName, parser.nextToken.lexemeName);
                 parser.currentSyntax = compositionBase.EXPRESSION;
                 break;
             }
@@ -199,14 +222,20 @@ public class Syntax {
         try{
             File syntaxOutput = new File("SyntaxOutput.txt");
             if(syntaxOutput.createNewFile()){
-                System.out.println("File created");
+                System.out.println("SyntaxOutput.txt created\n");
             }
             else{
-                System.out.println("File already exists");
+                System.out.println("SyntaxOutput.txt already exists\n");
             }
             FileWriter writer = new FileWriter("SyntaxOutput.txt");
             for(Line line : lines){
-                List<List<compositionBase>> list = parseLine(line);
+            	List<List<compositionBase>> list = null;
+            	try{
+            		list = parseLine(line);            		
+            	} catch(Exception e){
+            		e.printStackTrace();
+            		return;
+            	}
                 for(int i = 0; i < line.tokens.size(); i++){
                     currToken = line.tokens.get(i);
                     int numSpaces = 15-currToken.tokenName.toString().length();

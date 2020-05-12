@@ -193,9 +193,9 @@ public class Lexer {
         try{
             File lexerOutput = new File("LexerOutput.txt");
             if(lexerOutput.createNewFile()) {
-                System.out.println("File created");
+                System.out.println("LexerOutput.txt created\n");
             } else {
-                System.out.println("File already exists");
+                System.out.println("LexerOutput.txt already exists\n");
             }
             FileWriter writer = new FileWriter("LexerOutput.txt");
             
