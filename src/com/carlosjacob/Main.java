@@ -19,7 +19,9 @@ public class Main {
     	try {
 			Syntax syntax = new Syntax();
         	List<Line> lines = syntax.createLines(tokenList);        	
-        	syntax.printAllLines(lines); 
+        	syntax.printAllLines(lines);
+        	System.out.println();
+        	syntax.symTable.printSymbolTable();
         }catch(Exception e){
         	System.out.println(e.getMessage());
         	return;

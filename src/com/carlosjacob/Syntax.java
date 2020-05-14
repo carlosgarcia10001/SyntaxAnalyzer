@@ -1,25 +1,13 @@
 package com.carlosjacob;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/*
-<Statement> -> <Declarative>
-<Declarative> -> <Type> <id>
-
-<Statement> -> <Assign>
-<Assign> -> <ID> = <Expression>;
-
-<Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>
-
-<Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>
-
-<Factor> -> ( <Expression> ) | <ID> | <num>
-
-<ID> -> id
-*/
-
 public class Syntax {
-
+	SymbolTable symTable = new SymbolTable();
+	
     public Syntax(){
     }
 
@@ -52,83 +40,8 @@ public class Syntax {
             this.specificComposition = composition;
         }
 
-        public int getComposition(){
-            return specificComposition;
-        }
-
         public String getSyntaxString(){
             return syntaxString;
-        }
-    }
-
-    public enum fullComposition {
-        STATEMENT(0, "<Statement> -> <Declarative> | <Assignment>"),
-        DECLARATIVE(1, "<Declarative> -> <Type> <ID> <MoreIds>; | <empty>"),
-        TYPE(2, "int, float, bool"),
-        IDENTIFIER(3, "<ID> - > id"),
-        ASSIGNMENT(4, "<Assignment> -> <Identifier> = <Expression>;"),
-        EXPRESSION(5, "<Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>"),
-        TERM(6, "<Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>"),
-        FACTOR(7, "<Factor> -> ( <Expression> ) | <ID> | <num>"),
-        NUMBER(8),
-        EMPTY(9,"<Empty> -> Epsilon"),
-        EMPTYPRIME(10,"<Empty> -> Epsilon"),
-        PRIMARY(10,"<Primary> -> <ID>, <num>"),
-        ERROR(-1);
-
-        private int specificCompositionIndex;
-        private String syntaxString;
-        private compositionBase[][][] fullCompositions = {
-                {{compositionBase.DECLARATIVE}, {compositionBase.ASSIGNMENT}},
-                {{compositionBase.TYPE, compositionBase.IDENTIFIER}}
-        };
-
-        public String getString(){
-            return syntaxString;
-        }
-
-        fullComposition(int index, String syntaxString){
-            this.specificCompositionIndex = index;
-            this.syntaxString = syntaxString;
-
-        }
-        fullComposition(int index){
-            this.specificCompositionIndex = index;
-        }
-
-        public compositionBase[][] getComposition(){
-            if(this.getCompositionIndex() == -1) {
-                return null;
-            }
-            return this.fullCompositions[this.getCompositionIndex()];
-        }
-
-        public int getCompositionIndex(){
-            return specificCompositionIndex;
-        }
-
-        public static compositionBase returnEnumFromId(int index){
-            switch(index){
-                case 0:
-                    return compositionBase.STATEMENT;
-                case 1:
-                    return compositionBase.DECLARATIVE;
-                case 2:
-                    return compositionBase.TYPE;
-                case 3:
-                    return compositionBase.IDENTIFIER;
-                case 4:
-                    return compositionBase.ASSIGNMENT;
-                case 5:
-                    return compositionBase.EXPRESSION;
-                case 6:
-                    return compositionBase.TERM;
-                case 7:
-                    return compositionBase.FACTOR;
-                case 8:
-                    return compositionBase.NUMBER;
-            }
-            return compositionBase.ERROR;
         }
     }
 
@@ -144,8 +57,6 @@ public class Syntax {
         Line line = new Line();
         Token currToken;
 
-        List<String> errors = new ArrayList<>();
-
         for(int i = 0; i < tokensFromLexer.size(); i++){
             currToken = tokensFromLexer.get(i);
             line.tokens.add(currToken);
@@ -153,26 +64,19 @@ public class Syntax {
                 lines.add(line);
                 line = new Line();
                 continue;
-            } else if(i == tokensFromLexer.size()-1) {
-                //They didn't at least have the end of the token with a semicolon
-                errors.add("Expected a semicolon after token " + currToken.lexemeName);
             }
-        }
-        if(errors.size() != 0) {
-            for(String error : errors) {
-                System.out.println(error);
-            }
-            throw new Exception("Syntax Error");
         }
         return lines;
     }
 
     public class currentParsing{
         public compositionBase currentSyntax;
+        public Token previousToken;
         public Token currentToken;
         public Token nextToken;
 
-        public currentParsing(compositionBase currentSyntax, Token currentToken, Token nextToken){
+        public currentParsing(compositionBase currentSyntax, Token previousToken, Token currentToken, Token nextToken){
+        	this.previousToken = previousToken;
             this.currentSyntax = currentSyntax;
             this.currentToken = currentToken;
             this.nextToken = nextToken;
@@ -180,29 +84,45 @@ public class Syntax {
     }
 
     // Parses the input line and returns a list of the proper grammatical rules for that token
-    public List<List<compositionBase>> parseLine(Line line){
+    public List<List<compositionBase>> parseLine(Line line) throws Exception{
 
         //A 2D array containing the rules for each token in the line
         List<List<compositionBase>> tokenRules = new ArrayList<>();
 
-        currentParsing parser = new currentParsing(compositionBase.STATEMENT, line.tokens.get(0), line.tokens.get(1));
+        currentParsing parser = new currentParsing(compositionBase.STATEMENT, null, line.tokens.get(0), line.tokens.get(1));
         parser.currentSyntax = compositionBase.STATEMENT;
 
         for(int i = 0; i < line.tokens.size(); i++){
             tokenRules.add(new ArrayList<>());
         }
 
-        //"Blimith Today at 11:16 AM
-        //Every line is a statement of some sort"
         tokenRules.get(0).add(compositionBase.STATEMENT);
 
         for(int i = 0; i < line.tokens.size(); i++){
             List<compositionBase> currentCharacterAnalysis = tokenRules.get(i);
             parser.currentToken = line.tokens.get(i);
+            if(i > 0){
+            	parser.previousToken = line.tokens.get(i-1);
+            } else {
+            	parser.previousToken = null;
+            }
 
             //Ignore displaying comments
             if(parser.currentToken.tokenName == Lexer.State.IN_COMMENT) {
                 continue;
+            }
+            
+            if(parser.currentToken.tokenName == Lexer.State.IDENTIFIER){
+            	String type = null;
+            	if(i > 0){
+            		type = line.tokens.get(i-1).lexemeName;
+            		Symbol symbol = new Symbol(parser.currentToken.lexemeName, type);
+            		symTable.insert_symbol(symbol);
+            	} else {
+            		if(symTable.find_symbol(parser.currentToken.lexemeName) == null){
+            			throw new Error("Undeclared variable");            			
+            		}
+            	}
             }
 
             //Check to make sure we can get the next token
@@ -226,6 +146,7 @@ public class Syntax {
                 break;
             }
             if (parser.currentToken.tokenName == Lexer.State.OPERATOR && parser.currentToken.lexemeName.equals("=")) {
+            	symTable.insert_value(parser.previousToken.lexemeName, parser.nextToken.lexemeName);
                 parser.currentSyntax = compositionBase.EXPRESSION;
                 break;
             }
@@ -296,30 +217,54 @@ public class Syntax {
         }
     }
 
-    public void printLine(Line line){
-        for(Token token : line.tokens){
-            System.out.print(token.lexemeName + " ");
-        }
-        System.out.println();
-    }
-
     public void printAllLines(List<Line> lines){
         Token currToken = null;
-        for(Line line : lines){
-            List<List<compositionBase>> list = parseLine(line);
-            for(int i = 0; i < line.tokens.size(); i++){
-                currToken = line.tokens.get(i);
-                System.out.print("Token: " + currToken.tokenName);
-                System.out.println("\t\tLexeme: " + currToken.lexemeName);
-                if(currToken.tokenName != Lexer.State.IN_COMMENT && list.get(i).size() != 0) {
+        try{
+            File syntaxOutput = new File("SyntaxOutput.txt");
+            if(syntaxOutput.createNewFile()){
+                System.out.println("SyntaxOutput.txt created\n");
+            }
+            else{
+                System.out.println("SyntaxOutput.txt already exists\n");
+            }
+            FileWriter writer = new FileWriter("SyntaxOutput.txt");
+            for(Line line : lines){
+            	List<List<compositionBase>> list = null;
+            	try{
+            		list = parseLine(line);            		
+            	} catch(Exception e){
+            		e.printStackTrace();
+            		return;
+            	}
+                for(int i = 0; i < line.tokens.size(); i++){
+                    currToken = line.tokens.get(i);
+                    int numSpaces = 15-currToken.tokenName.toString().length();
+                    String spaces = "";
 
-
-                    //Print all the syntax rules for this token type
-                    for(int j = 0; j < list.get(i).size(); j++){
-                        System.out.println(list.get(i).get(j).getSyntaxString());
+                    for(int j = 0; j < numSpaces; j++) {
+                        spaces += " ";
+                    }
+                    System.out.print("Token: " + currToken.tokenName);
+                    System.out.println("\t\tLexeme: " + currToken.lexemeName);
+                    if(i==0){
+                        writer.write("Token: " + currToken.tokenName);
+                    }
+                    else {
+                        writer.write("\nToken: " + currToken.tokenName);
+                    }
+                    writer.write(spaces + "\t\tLexeme: " + currToken.lexemeName);
+                    if(currToken.tokenName != Lexer.State.IN_COMMENT && list.get(i).size() != 0) {
+                        //Print all the syntax rules for this token type
+                        for(int j = 0; j < list.get(i).size(); j++){
+                            System.out.println(list.get(i).get(j).getSyntaxString());
+                            writer.write("\n"+list.get(i).get(j).getSyntaxString());
+                        }
                     }
                 }
             }
+            writer.close();
+        }catch(IOException e){
+            System.out.println("Error occured");
         }
     }
 }
