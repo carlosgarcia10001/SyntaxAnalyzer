@@ -5,15 +5,16 @@ import java.util.ArrayList;
 import java.util.Deque;
 
 public class Instructions {
-    private ArrayList<String> instructions;
+    private ArrayList<String> instructList;
     Deque<Integer> stack;
     SymbolTable symbols;
     static int instructionCounter = 1;
     public Instructions(SymbolTable symbols){
-        instructions = new ArrayList<>();
+        instructList = new ArrayList<>();
         stack = new ArrayDeque<>();
         this.symbols = symbols;
     }
+
     public void performInstruction(InstructionEnum instruction, int value){
         insertInstruction(instruction,value);
         switch(instruction){
@@ -132,17 +133,17 @@ public class Instructions {
     }
 
     public void insertInstruction(InstructionEnum instruction, int value){
-        instructions.add(instructionCounter + ". " + instruction.toString() + " " + value);
+        instructList.add(instructionCounter + ". " + instruction.toString() + " " + value);
         instructionCounter++;
     }
 
     public void insertInstruction(InstructionEnum instruction){
-        instructions.add(instructionCounter + ". " + instruction.toString());
+        instructList.add(instructionCounter + ". " + instruction.toString());
         instructionCounter++;
     }
 
-    public ArrayList<String> getInstructions(){
-        return instructions;
+    public ArrayList<String> getInstructList(){
+        return instructList;
     }
 
 }

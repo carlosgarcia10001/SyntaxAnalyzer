@@ -1,8 +1,48 @@
-Token: IDENTIFIER     		Lexeme: x
+Token: KEYWORD        		Lexeme: int
+<Statement> -> <Declarative> | <Assignment>
+<Declarative> -> <Type> <ID>
+Token: IDENTIFIER     		Lexeme: num
+<Assignment> -> <Identifier> = <Expression>;
+Token: SEPARATOR      		Lexeme: ,
+Token: IDENTIFIER     		Lexeme: nu2m
+Token: SEPARATOR      		Lexeme: ,
+Token: IDENTIFIER     		Lexeme: sum
+Token: END_STATEMENT  		Lexeme: ;
+<Empty> -> EpsilonToken: IDENTIFIER     		Lexeme: num
 <Statement> -> <Declarative> | <Assignment>
 <Assignment> -> <Identifier> = <Expression>;
 Token: OPERATOR       		Lexeme: =
-Token: IDENTIFIER     		Lexeme: a
+Token: NUMBER         		Lexeme: 0
+<Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>
+<Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>
+<Factor> -> ( <Expression> ) | <ID> | <num>
+<Primary> -> <ID>,<num>
+Token: END_STATEMENT  		Lexeme: ;
+<Empty> -> EpsilonToken: IDENTIFIER     		Lexeme: nu2m
+<Statement> -> <Declarative> | <Assignment>
+<Assignment> -> <Identifier> = <Expression>;
+Token: OPERATOR       		Lexeme: =
+Token: NUMBER         		Lexeme: 15
+<Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>
+<Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>
+<Factor> -> ( <Expression> ) | <ID> | <num>
+<Primary> -> <ID>,<num>
+Token: END_STATEMENT  		Lexeme: ;
+<Empty> -> EpsilonToken: IDENTIFIER     		Lexeme: sum
+<Statement> -> <Declarative> | <Assignment>
+<Assignment> -> <Identifier> = <Expression>;
+Token: OPERATOR       		Lexeme: =
+Token: NUMBER         		Lexeme: 0
+<Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>
+<Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>
+<Factor> -> ( <Expression> ) | <ID> | <num>
+<Primary> -> <ID>,<num>
+Token: END_STATEMENT  		Lexeme: ;
+<Empty> -> EpsilonToken: IDENTIFIER     		Lexeme: sum
+<Statement> -> <Declarative> | <Assignment>
+<Assignment> -> <Identifier> = <Expression>;
+Token: OPERATOR       		Lexeme: =
+Token: IDENTIFIER     		Lexeme: num
 <Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>
 <Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>
 <Factor> -> ( <Expression> ) | <ID> | <num>
@@ -12,7 +52,7 @@ Token: OPERATOR       		Lexeme: +
 <TermPrime> -> * <Factor> <TermPrime> | / <Factor> <TermPrime> | <Empty>
 <Empty> -> Epsilon
 <ExpressionPrime> -> + <Term> <ExpressionPrime> | - <Term> <ExpressionPrime> | <Empty>
-Token: IDENTIFIER     		Lexeme: b
+Token: IDENTIFIER     		Lexeme: nu2m
 <Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>
 <Factor> -> ( <Expression> ) | <ID> | <num>
 <Primary> -> <ID>,<num>

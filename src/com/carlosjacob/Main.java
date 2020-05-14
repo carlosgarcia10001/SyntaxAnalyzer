@@ -7,7 +7,6 @@ import com.carlosjacob.Syntax.Line;
 public class Main {
 
     public static void main(String[] args) {
-    	CodeGenerator code = new CodeGenerator();
     	List<Token> tokenList = null;
     	try{
     		Lexer lex = new Lexer();
@@ -22,6 +21,7 @@ public class Main {
         	List<Line> lines = syntax.createLines(tokenList);        	
         	syntax.printAllLines(lines);
         	System.out.println();
+			CodeGenerator generator = new CodeGenerator(syntax.syntaxRules(lines), syntax.createLines(tokenList));
         }catch(Exception e){
         	System.out.println(e.getMessage());
         	return;

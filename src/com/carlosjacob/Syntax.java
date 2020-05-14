@@ -42,6 +42,7 @@ public class Syntax {
         public String getSyntaxString() {
             return syntaxString;
         }
+
     }
 
     public class Line {
@@ -134,6 +135,7 @@ public class Syntax {
 
     public void addRules(currentParsing parser, List<compositionBase> currentCharacterAnalysis) {
         while (true) {
+
             if (parser.currentToken.lexemeName.equals(";")) {
                 parser.currentSyntax = compositionBase.EMPTY;
                 currentCharacterAnalysis.add(compositionBase.EMPTY);
@@ -156,7 +158,7 @@ public class Syntax {
                         parser.currentSyntax = compositionBase.ASSIGNMENT;
                     } else if (parser.currentToken.tokenName == Lexer.State.KEYWORD) {
                         currentCharacterAnalysis.add(compositionBase.DECLARATIVE);
-                        parser.currentSyntax = compositionBase.PRIMARY;
+                        parser.currentSyntax = compositionBase.DECLARATIVE;
                         return;
                     }
                     break;
@@ -164,7 +166,11 @@ public class Syntax {
                     return;
                 case NUMBER:
                 case IDENTIFIER:
+                    break;
                 case DECLARATIVE:
+                    currentCharacterAnalysis.add(compositionBase.ASSIGNMENT);
+                    parser.currentSyntax = compositionBase.ASSIGNMENT;
+                    break;
                 case EXPRESSION:
                     currentCharacterAnalysis.add(compositionBase.EXPRESSION);
                     parser.currentSyntax = compositionBase.TERM;
@@ -200,10 +206,16 @@ public class Syntax {
                     break;
                 case EXPRESSIONPRIME:
                     currentCharacterAnalysis.add(compositionBase.EXPRESSIONPRIME);
-                    if (parser.currentToken.lexemeName.equals("+") || parser.currentToken.lexemeName.equals("-")) {
+                    if(parser.currentToken.tokenName== Lexer.State.NUMBER){
+                        currentCharacterAnalysis.add(compositionBase.PRIMARY);
                         return;
                     }
-                    currentCharacterAnalysis.add(compositionBase.EMPTY);
+                    else {
+                        if (parser.currentToken.lexemeName.equals("+") || parser.currentToken.lexemeName.equals("-")) {
+                            return;
+                        }
+                        currentCharacterAnalysis.add(compositionBase.EMPTY);
+                    }
                 default:
                     return;
             }
@@ -211,13 +223,15 @@ public class Syntax {
     }
 
     public List<List<List<compositionBase>>> syntaxRules(List<Line> lines) {
-        List<List<List<compositionBase>>> syntaxRules = null;
+        List<List<List<compositionBase>>> syntaxRules = new ArrayList<>();
         for (Line line : lines) {
             List<List<compositionBase>> list = null;
             try {
-                syntaxRules.add(parseLine(line));
+                list = parseLine(line);
+                syntaxRules.add(list);
             } catch (Exception e) {
                 e.printStackTrace();
+                return syntaxRules;
             }
         }
         return syntaxRules;

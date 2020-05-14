@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Lexer {
-    final String keyWordList [] = {"int", "float", "bool", "true", "false", "if", "else", "then", "endif", "while", "whileend", "do", "doend", "for", "forend", "input", "output", "and", "or", "not"};
+    final String keyWordList [] = {"string", "int", "float", "bool", "true", "false", "if", "else", "then", "endif", "while", "whileend", "do", "doend", "for", "forend", "input", "output", "and", "or", "not"};
     Map<String,State> keyWordMap = new HashMap<>();
     List<Token>removeList = new ArrayList<>();
 
