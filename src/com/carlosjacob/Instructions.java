@@ -16,7 +16,6 @@ public class Instructions {
     }
 
     public void performInstruction(InstructionEnum instruction, int value){
-        insertInstruction(instruction,value);
         switch(instruction){
             case PUSHI:
                 stack.add(value);
@@ -32,10 +31,10 @@ public class Instructions {
                 break;
             case JUMP:
         }
+        insertInstruction(instruction,value);
     }
 
     public void performInstruction(InstructionEnum instruction){
-        insertInstruction(instruction);
         int first = stack.getFirst();
         boolean evaluation;
         switch(instruction){
@@ -128,8 +127,8 @@ public class Instructions {
                     stack.add(0);
                 }
                 break;
-
         }
+        insertInstruction(instruction);
     }
 
     public void insertInstruction(InstructionEnum instruction, int value){

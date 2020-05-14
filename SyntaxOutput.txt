@@ -1,6 +1,18 @@
 Token: KEYWORD        		Lexeme: int
 <Statement> -> <Declarative> | <Assignment>
 <Declarative> -> <Type> <ID>
+Token: IDENTIFIER     		Lexeme: a
+<Assignment> -> <Identifier> = <Expression>;
+Token: OPERATOR       		Lexeme: =
+Token: NUMBER         		Lexeme: 1
+<Expression> -> <Expression> + <Term> | <Expression> - <Term> | <Term>
+<Term> -> <Term> * <Factor> | <Term> / <Factor> | <Factor>
+<Factor> -> ( <Expression> ) | <ID> | <num>
+<Primary> -> <ID>,<num>
+Token: END_STATEMENT  		Lexeme: ;
+<Empty> -> EpsilonToken: KEYWORD        		Lexeme: int
+<Statement> -> <Declarative> | <Assignment>
+<Declarative> -> <Type> <ID>
 Token: IDENTIFIER     		Lexeme: num
 <Assignment> -> <Identifier> = <Expression>;
 Token: SEPARATOR      		Lexeme: ,

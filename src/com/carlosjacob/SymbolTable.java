@@ -9,7 +9,7 @@ public class SymbolTable {
 	Hashtable<Integer, Integer> int_memory_mapper = new Hashtable<Integer, Integer>();
 	Hashtable<Integer, Float> float_memory_mapper = new Hashtable<Integer, Float>();
 	Hashtable<Integer, String> string_memory_mapper = new Hashtable<Integer, String>();
-	Hashtable<Integer, Object> memoryMapper = new Hashtable();
+	Hashtable<Integer, Object> memoryMapper = new Hashtable<>();
 	public SymbolTable(){
 
 	}

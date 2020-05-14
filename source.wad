@@ -1,4 +1,6 @@
+int a = 1;
 int num, nu2m, sum;
+
 num = 0;
 nu2m = 15;
 sum = 0;
