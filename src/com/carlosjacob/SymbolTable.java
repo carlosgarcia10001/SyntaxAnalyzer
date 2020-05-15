@@ -15,8 +15,8 @@ public class SymbolTable {
 	}
 
 	public void insert_symbol(Symbol symbol){
-		symbol.setAddress(current_memory_addr);
-		if(symbolInserted(symbol.getIdentifer())) {
+		if(!symbolInserted(symbol.getIdentifer())) {
+			symbol.setAddress(current_memory_addr);
 			symbols.put(symbol.getIdentifer(), symbol);
 			current_memory_addr++;
 		}

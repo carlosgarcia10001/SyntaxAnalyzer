@@ -25,7 +25,7 @@ public class Symbol {
 		return type;
 	}
 
-	public void setType(){
+	public void setType(SymbolType type){
 		this.type = type;
 	}
 }
