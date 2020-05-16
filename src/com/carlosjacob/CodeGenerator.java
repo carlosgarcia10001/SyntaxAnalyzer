@@ -1,5 +1,8 @@
 package com.carlosjacob;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +25,34 @@ public class CodeGenerator {
         this.lines = lines;
         generateCode();
 		symbols.printSymbolTable();
+		try {
+            File syntaxOutput = new File("GeneratedCode.txt");
+            if (syntaxOutput.createNewFile()) {
+                System.out.println("GeneratedCode.txt created\n");
+            } else {
+                System.out.println("GeneratedCode.txt already exists\n");
+            }
+            FileWriter writer = new FileWriter("GeneratedCode.txt");
+            
+            writer.write("Instruction List\n");
+            for(String instruction : instructionsList){
+            	writer.write(instruction + "\n");
+            }
+            writer.write("\n\nSymbolTable\n\nIdentifier\t\tMemoryLocation\t\tType\t\tValue\n");
+            
+            symbols.symbols.forEach(
+    				(key, value) -> {
+						try {
+							writer.write(value.getIdentifer() + "\t\t\t\t" + value.getAddress() + "\t\t" + value.getType().toString() + "\t\t" + symbols.find_value(value) + "\n");
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+    		);
+            writer.close();
+		} catch (IOException e) {
+            System.out.println("Error occured");
+        }
     }
 
     public void generateCode(){
@@ -38,8 +69,6 @@ public class CodeGenerator {
                 int amountOfRules = syntaxRules.get(i).get(j).size();
                 
                 if(amountOfRules > 0){
-                	
-                	//For some reason, some of the rules have a shitload of nulls in them, not sure right now and I don't care right now!
                 	while(syntaxRules.get(i).get(j).get(amountOfRules-1) == null){
                 		amountOfRules--;
                 	}

@@ -37,7 +37,7 @@ public class SymbolTable {
 	public Symbol find_symbol(String symbol_name){
 		Symbol symbol = symbols.get(symbol_name);
 		if(symbol != null){
-			System.out.println("Symbol was found!");
+			System.out.println("Symbol " + symbol_name + " was found!");
 		}
 		return symbol;
 	}
