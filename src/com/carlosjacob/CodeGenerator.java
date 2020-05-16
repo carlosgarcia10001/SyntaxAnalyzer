@@ -10,6 +10,7 @@ public class CodeGenerator {
     List<String> instructionsList;
     List<List<List<Syntax.compositionBase>>> syntaxRules;
     List<Syntax.Line> lines;
+    String symbolForValue = "";
 
     CodeGenerator(List<List<List<Syntax.compositionBase>>> syntaxRules, List<Syntax.Line> lines){
         symbols = new SymbolTable();
@@ -20,6 +21,7 @@ public class CodeGenerator {
         this.syntaxRules = syntaxRules;
         this.lines = lines;
         generateCode();
+		symbols.printSymbolTable();
     }
 
     public void generateCode(){
@@ -59,20 +61,23 @@ public class CodeGenerator {
 	                    	if(symbols.find_symbol(currentToken.lexemeName) == null){
 	                    		currentSymbol = new Symbol(currentToken.lexemeName, type);
 	                    		symbols.insert_symbol(currentSymbol);
-	                    		symbols.printSymbolTable();
 //	                        currentSymbol = new Symbol(currentToken.lexemeName, type);
-	                    		assignment = true;	                    		
+	                    		assignment = true;
+	                    		symbolForValue = currentToken.lexemeName;
 	                    	}
 	                        break;
 	                    
 	                    //We need a way to identify what identifier is using this primary, if we don't the else clause is unreachable
 	                    case PRIMARY:
+	                    	currentSymbol = symbols.find_symbol(symbolForValue);
 	                        if (assignment) {
 	                            if (currentToken.tokenName == Lexer.State.NUMBER) {
+	                            	symbols.insert_value(currentSymbol.getIdentifer(), currentToken.lexemeName);
 	                                indexedNumbers.add(Integer.parseInt(currentToken.lexemeName));
 	                            } else {
 	                            	if(currentSymbol != null){
-	                            		//int value = (int)symbols.findValue(currentSymbol.getAddress());	                            		
+	                            		symbols.insert_value(currentSymbol.getIdentifer(), 1);
+	                            		int value = (int)symbols.findValue(currentSymbol.getAddress());	                            		
 	                            		indexedNumbers.add(1);
 	                            	}
 	                            }
